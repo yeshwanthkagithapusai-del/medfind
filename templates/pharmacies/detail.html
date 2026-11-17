@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ pharmacy.pharmacy_name }} - MediFind Store Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Left: Pharmacy Details Card -->
+  <div class="col-lg-4">
+    <div class="med-card p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+          Reg: {{ pharmacy.registration_number }}
+        </span>
+        {% if pharmacy.is_approved %}
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+            <i class="bi bi-patch-check-fill me-1"></i> Verified Partner
+          </span>
+        {% else %}
+          <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">
+            Pending Approval
+          </span>
+        {% endif %}
+      </div>
+
+      <h3 class="fw-bold text-dark mb-2">{{ pharmacy.pharmacy_name }}</h3>
+      
+      <p class="text-muted small mb-3">
+        <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+        {{ pharmacy.address }}<br>
+        {{ pharmacy.city }}, {{ pharmacy.state }} - {{ pharmacy.pincode }}
+      </p>
+
+      <div class="border-top pt-3 mb-3">
+        <label class="small text-muted fw-bold">Primary Contact</label>
+        <p class="fs-5 fw-bold text-success mb-1">
+          <i class="bi bi-telephone me-1"></i> {{ pharmacy.phone_number }}
+        </p>
+        <a href="tel:{{ pharmacy.phone_number }}" class="btn btn-outline-success btn-sm w-100 mt-1">
+          Call Pharmacy Now
+        </a>
+      </div>
+
+      {% if pharmacy.latitude and pharmacy.longitude %}
+        <div class="border-top pt-3 mb-3">
+          <label class="small text-muted fw-bold">Geographic Coordinates</label>
+          <p class="small text-muted mb-0">Lat: {{ pharmacy.latitude }}, Lng: {{ pharmacy.longitude }}</p>
+        </div>
+      {% endif %}
+
+      <div class="border-top pt-3">
+        <a href="{% url 'search_medicines' %}" class="btn btn-outline-secondary btn-sm w-100">
+          &larr; Back to Search
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Current Inventory Stock & Map -->
+  <div class="col-lg-8">
+    <div class="med-card p-4 mb-4">
+      <h4 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-boxes text-primary me-2"></i>Reported Medicine Inventory</span>
+        <span class="badge bg-light text-dark fs-6">{{ inventory_items.count }} Item{{ inventory_items.count|pluralize }}</span>
+      </h4>
+
+      {% if inventory_items %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Medicine Formulation</th>
+                <th>Category</th>
+                <th>Reported Stock</th>
+                <th>Status</th>
+                <th class="text-end">Inquiry</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in inventory_items %}
+                <tr>
+                  <td>
+                    <strong>
+                      <a href="{% url 'medicine_detail' item.medicine.id %}" class="text-dark text-decoration-none">
+                        {{ item.medicine.medicine_name }}
+                      </a>
+                    </strong><br>
+                    <span class="small text-muted">{{ item.medicine.generic_name }} ({{ item.medicine.strength }})</span>
+                  </td>
+                  <td><span class="badge bg-secondary-subtle text-secondary small">{{ item.medicine.category }}</span></td>
+                  <td>
+                    <strong>{{ item.quantity }}</strong> units
+                    <div class="small text-muted" style="font-size: 0.75rem;">
+                      {{ item.updated_at|timesince }} ago
+                    </div>
+                  </td>
+                  <td>
+                    {% if item.availability_status == 'IN_STOCK' %}
+                      <span class="badge-in-stock">In Stock</span>
+                    {% elif item.availability_status == 'LOW_STOCK' %}
+                      <span class="badge-low-stock">Low Stock</span>
+                    {% else %}
+                      <span class="badge-out-stock">Out of Stock</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if user.is_authenticated and user.is_customer %}
+                      <a href="{% url 'create_request' pharmacy.id item.medicine.id %}" class="btn btn-sm btn-med-primary">
+                        Request
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          <p>No inventory records are currently published by this pharmacy.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if map_pin %}
+      <div class="med-card p-3">
+        <h6 class="fw-bold text-muted mb-2"><i class="bi bi-map me-1 text-primary"></i> Pharmacy Location</h6>
+        <div id="map" style="height: 280px;"></div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if map_pin %}
+{{ map_pin|json_script:"pharmacy-pin-data" }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const p = JSON.parse(document.getElementById('pharmacy-pin-data').textContent || '{}');
+    if (!p.lat || !p.lng) return;
+
+    const map = L.map('map').setView([p.lat, p.lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    L.marker([p.lat, p.lng])
+      .addTo(map)
+      .bindPopup(`<strong>${p.name}</strong><br>${p.address}`)
+      .openPopup();
+  });
+</script>
+{% endif %}
+{% endblock %}

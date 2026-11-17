@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Portal Dashboard - MediFind{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- 1. Patient Welcome Banner -->
+  <div class="col-12">
+    <div class="med-card p-4 p-md-5 text-white" style="background: linear-gradient(135deg, var(--med-primary) 0%, var(--med-secondary) 100%);">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-white text-dark rounded-pill fw-bold" style="font-size: 0.75rem;">
+              <i class="bi bi-person-heart text-primary me-1"></i> Patient Portal
+            </span>
+            <span class="badge bg-white-50 text-white rounded-pill small" style="font-size: 0.75rem;">
+              <i class="bi bi-clock-history me-1"></i> Member since {{ user.date_joined|date:"M Y" }}
+            </span>
+          </div>
+          <h2 class="fw-bold mb-1 text-white">{{ greeting }}, {{ customer_display_name }}!</h2>
+          <p class="mb-0 text-white-50 small" style="max-width: 650px;">
+            Track real-time pharmacy responses, verify prescription drug availability, and connect with licensed community chemists.
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <a href="{% url 'profile' %}" class="btn btn-outline-light rounded-pill px-3 py-2 btn-sm fw-semibold">
+            <i class="bi bi-person-gear me-1"></i> Profile
+          </a>
+          <a href="{% url 'notifications' %}" class="btn btn-outline-light rounded-pill px-3 py-2 btn-sm fw-semibold position-relative">
+            <i class="bi bi-bell me-1"></i> Alerts
+            {% if unread_notifications_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                {{ unread_notifications_count }}
+              </span>
+            {% endif %}
+          </a>
+          <a href="{% url 'search_medicines' %}" class="btn btn-light rounded-pill px-4 py-2 fw-bold shadow-sm" style="color: var(--med-primary);">
+            <i class="bi bi-search me-1"></i> Search Medicines
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Actual Database Metric Tiles -->
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-primary);">{{ total_requests }}</div>
+        <div class="stat-label">Total Inquiries Sent</div>
+      </div>
+      <div class="stat-icon" style="background-color: rgba(16, 42, 67, 0.08); color: var(--med-primary);">
+        <i class="bi bi-chat-left-dots"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-warning);">{{ pending_requests }}</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+      <div class="stat-icon" style="background-color: var(--med-warning-bg); color: var(--med-warning);">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-success);">{{ confirmed_requests }}</div>
+        <div class="stat-label">Confirmed In Stock</div>
+      </div>
+      <div class="stat-icon" style="background-color: var(--med-success-bg); color: var(--med-success);">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-danger);">{{ unavailable_requests }}</div>
+        <div class="stat-label">Reported Unavailable</div>
+      </div>
+      <div class="stat-icon" style="background-color: var(--med-danger-bg); color: var(--med-danger);">
+        <i class="bi bi-x-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Left Column: Recent Inquiries Table & Quick Actions -->
+  <div class="col-lg-8">
+
+    <!-- Recent Inquiries Table -->
+    <div class="med-card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-clock-history me-2 text-primary"></i>Recent Availability Inquiries
+          </h5>
+          <span class="text-muted small">Latest responses from participating pharmacies</span>
+        </div>
+        <a href="{% url 'customer_requests' %}" class="small text-primary text-decoration-none fw-bold">
+          View All ({{ total_requests }}) &rarr;
+        </a>
+      </div>
+
+      {% if recent_requests %}
+        <div class="table-responsive">
+          <table class="table med-table align-middle">
+            <thead>
+              <tr>
+                <th>Medicine Formulation</th>
+                <th>Pharmacy</th>
+                <th>Units</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in recent_requests %}
+                <tr>
+                  <td>
+                    <strong class="text-dark">{{ req.medicine.medicine_name }}</strong><br>
+                    <span class="text-muted small">{{ req.medicine.dosage_form }} &bull; {{ req.medicine.strength }}</span>
+                  </td>
+                  <td>
+                    <a href="{% url 'pharmacy_detail' req.pharmacy.id %}" class="text-decoration-none fw-semibold" style="color: var(--med-primary);">
+                      {{ req.pharmacy.pharmacy_name }}
+                    </a><br>
+                    <span class="text-muted small"><i class="bi bi-geo-alt text-danger"></i> {{ req.pharmacy.city }}</span>
+                  </td>
+                  <td><strong>{{ req.quantity_requested }}</strong></td>
+                  <td>
+                    {% if req.status == 'PENDING' %}
+                      <span class="badge-status-pending">Pending Review</span>
+                    {% elif req.status == 'CONFIRMED' %}
+                      <span class="badge-status-confirmed"><i class="bi bi-check-circle me-1"></i>Confirmed</span>
+                    {% elif req.status == 'UNAVAILABLE' %}
+                      <span class="badge-status-unavailable"><i class="bi bi-x-circle me-1"></i>Unavailable</span>
+                    {% elif req.status == 'CANCELLED' %}
+                      <span class="badge bg-secondary-subtle text-secondary border">Cancelled</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ req.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">{{ req.created_at|date:"M d, H:i" }}</td>
+                  <td class="text-end">
+                    {% if req.status == 'PENDING' %}
+                      <form method="POST" action="{% url 'cancel_request' req.id %}" class="d-inline" onsubmit="return confirm('Cancel inquiry for {{ req.medicine.medicine_name|escapejs }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel this pending inquiry">
+                          Cancel
+                        </button>
+                      </form>
+                    {% elif req.status == 'CONFIRMED' %}
+                      <a href="tel:{{ req.pharmacy.phone_number }}" class="btn btn-sm btn-outline-success" title="Call pharmacy to hold">
+                        <i class="bi bi-telephone"></i> Call
+                      </a>
+                    {% else %}
+                      <a href="{% url 'pharmacy_detail' req.pharmacy.id %}" class="btn btn-sm btn-light border" title="Store Details">
+                        Store
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon">
+            <i class="bi bi-inbox"></i>
+          </div>
+          <h6 class="fw-bold text-dark">No Inquiries Sent Yet</h6>
+          <p class="text-muted small mb-3" style="max-width: 480px; margin: 0 auto;">
+            Need a prescription drug? Search our catalogue and click <strong>"Request Availability"</strong> to check live stock directly with local chemists.
+          </p>
+          <a href="{% url 'search_medicines' %}" class="btn btn-sm btn-med-primary rounded-pill px-4">
+            <i class="bi bi-search me-1"></i> Search Medicines Catalogue
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Action Cards Grid -->
+    <div class="med-card p-4">
+      <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-lightning-charge text-warning me-2"></i>Quick Actions &amp; Navigation</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <a href="{% url 'search_medicines' %}" class="text-decoration-none">
+            <div class="p-3 border rounded-3 bg-light hover-shadow h-100 d-flex align-items-center gap-3">
+              <div class="fs-3 text-primary"><i class="bi bi-capsule"></i></div>
+              <div>
+                <strong class="text-dark d-block">Search Medicines</strong>
+                <span class="small text-muted">Verify live stock and dosage availability</span>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6">
+          <a href="{% url 'pharmacy_discovery' %}" class="text-decoration-none">
+            <div class="p-3 border rounded-3 bg-light hover-shadow h-100 d-flex align-items-center gap-3">
+              <div class="fs-3 text-secondary"><i class="bi bi-hospital"></i></div>
+              <div>
+                <strong class="text-dark d-block">Nearby Pharmacies</strong>
+                <span class="small text-muted">Discover verified stores within 5–50 km</span>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6">
+          <a href="{% url 'customer_requests' %}" class="text-decoration-none">
+            <div class="p-3 border rounded-3 bg-light hover-shadow h-100 d-flex align-items-center gap-3">
+              <div class="fs-3 text-success"><i class="bi bi-card-checklist"></i></div>
+              <div>
+                <strong class="text-dark d-block">My Inquiries History</strong>
+                <span class="small text-muted">Review all status updates and pharmacy notes</span>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6">
+          <a href="{% url 'profile' %}" class="text-decoration-none">
+            <div class="p-3 border rounded-3 bg-light hover-shadow h-100 d-flex align-items-center gap-3">
+              <div class="fs-3 text-info"><i class="bi bi-person-badge"></i></div>
+              <div>
+                <strong class="text-dark d-block">Profile &amp; Security</strong>
+                <span class="small text-muted">Update contact details &amp; credentials</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 4. Right Column: Recent Alerts & Activity Overview -->
+  <div class="col-lg-4">
+
+    <!-- Notifications Center Card -->
+    <div class="med-card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-bell text-primary me-2"></i>Recent Alerts
+          </h5>
+          <span class="text-muted small">Responses &amp; system updates</span>
+        </div>
+        <a href="{% url 'notifications' %}" class="small text-primary text-decoration-none fw-bold">
+          All Alerts &rarr;
+        </a>
+      </div>
+
+      {% if recent_notifications %}
+        <div class="list-group list-group-flush">
+          {% for notif in recent_notifications %}
+            <div class="list-group-item px-0 py-2 border-0 border-bottom">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div class="d-flex align-items-start gap-2">
+                  <div class="fs-5 {% if not notif.is_read %}text-primary{% else %}text-muted{% endif %} mt-1">
+                    <i class="bi bi-chat-left-text"></i>
+                  </div>
+                  <div>
+                    <p class="mb-1 small text-dark {% if not notif.is_read %}fw-bold{% else %}fw-medium{% endif %}">
+                      {{ notif.message }}
+                    </p>
+                    <span class="text-muted" style="font-size: 0.75rem;">
+                      <i class="bi bi-clock me-1"></i>{{ notif.created_at|date:"M d, h:i A" }}
+                    </span>
+                  </div>
+                </div>
+                {% if not notif.is_read %}
+                  <form method="POST" action="{% url 'mark_notification_read' notif.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link p-0 text-decoration-none text-muted" title="Mark as read">
+                      <span class="badge bg-primary-subtle text-primary border rounded-pill">New</span>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon" style="width: 48px; height: 48px; font-size: 1.25rem;">
+            <i class="bi bi-bell-slash"></i>
+          </div>
+          <p class="text-muted small mb-0">No alerts or responses yet.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Account Details Summary Card -->
+    <div class="med-card p-4">
+      <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-shield-check text-success me-2"></i>Account Overview</h6>
+      <ul class="list-unstyled mb-0 small">
+        <li class="d-flex justify-content-between py-1 border-bottom">
+          <span class="text-muted">Username</span>
+          <strong>{{ user.username }}</strong>
+        </li>
+        <li class="d-flex justify-content-between py-1 border-bottom">
+          <span class="text-muted">Email</span>
+          <span class="text-dark">{{ user.email|default:"Not specified" }}</span>
+        </li>
+        <li class="d-flex justify-content-between py-1 border-bottom">
+          <span class="text-muted">Phone</span>
+          <span class="text-dark">{{ user.phone_number|default:"Not specified" }}</span>
+        </li>
+        <li class="d-flex justify-content-between py-1">
+          <span class="text-muted">Role</span>
+          <span class="badge bg-info-subtle text-info-emphasis border rounded-pill">Patient Member</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications Center - MediFind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="med-card p-4">
+
+      <!-- Header & Actions -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+        <div>
+          <h3 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-bell-fill text-primary"></i> Notifications Center
+            {% if unread_count > 0 %}
+              <span class="badge bg-danger rounded-pill fs-6">{{ unread_count }} New</span>
+            {% endif %}
+          </h3>
+          <p class="text-muted small mb-0">Live stock updates, pharmacist availability responses, and system notices</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          {% if unread_count > 0 %}
+            <form method="POST" action="{% url 'mark_all_notifications_read' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-check-all me-1"></i> Mark All as Read
+              </button>
+            </form>
+          {% endif %}
+          <a href="{% url 'dashboard' %}" class="btn btn-med-outline btn-sm">
+            &larr; Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="d-flex gap-2 mb-3">
+        <a href="?filter=all" class="btn btn-sm {% if filter_type == 'all' or not filter_type %}btn-med-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+          All Notifications
+        </a>
+        <a href="?filter=unread" class="btn btn-sm {% if filter_type == 'unread' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3">
+          Unread Alerts {% if unread_count > 0 %}<span class="badge bg-white text-danger ms-1">{{ unread_count }}</span>{% endif %}
+        </a>
+        <a href="?filter=read" class="btn btn-sm {% if filter_type == 'read' %}btn-secondary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+          Archived / Read
+        </a>
+      </div>
+
+      <!-- Notifications List -->
+      {% if notifications %}
+        <div class="list-group list-group-flush">
+          {% for notif in notifications %}
+            <div class="p-3 mb-2 rounded-3 border transition-all {% if not notif.is_read %}bg-light border-primary-subtle shadow-sm{% else %}bg-white{% endif %}">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="fs-4 {% if not notif.is_read %}text-primary{% else %}text-muted{% endif %} mt-1">
+                    {% if not notif.is_read %}
+                      <i class="bi bi-bell"></i>
+                    {% else %}
+                      <i class="bi bi-check2-circle"></i>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <p class="mb-1 text-dark {% if not notif.is_read %}fw-semibold{% else %}fw-normal{% endif %}" style="font-size: 0.95rem;">
+                      {{ notif.message }}
+                    </p>
+                    <div class="d-flex align-items-center gap-3 text-muted small" style="font-size: 0.78rem;">
+                      <span><i class="bi bi-clock me-1"></i>{{ notif.created_at|date:"M d, Y h:i A" }} ({{ notif.created_at|timesince }} ago)</span>
+                      <a href="{% url 'customer_requests' %}" class="text-decoration-none text-primary fw-medium">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>View Inquiries
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                  {% if not notif.is_read %}
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Unread</span>
+                    <form method="POST" action="{% url 'mark_notification_read' notif.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as Read">
+                        <i class="bi bi-check2"></i> Mark Read
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="badge bg-light text-muted border rounded-pill">Read</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if page_obj.has_other_pages %}
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
+            <div class="small text-muted">
+              Showing page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong>
+            </div>
+            <nav aria-label="Notifications pagination">
+              <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">&laquo; First</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+                  <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for pnum in page_obj.paginator.page_range %}
+                  {% if pnum == page_obj.number %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ pnum }}</span></li>
+                  {% elif pnum > page_obj.number|add:"-3" and pnum < page_obj.number|add:"3" %}
+                    <li class="page-item">
+                      <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pnum }}">{{ pnum }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">Next</span></li>
+                  <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="empty-state py-5">
+          <div class="empty-state-icon">
+            <i class="bi bi-bell-slash"></i>
+          </div>
+          <h5 class="fw-bold text-dark">No Notifications Found</h5>
+          <p class="text-muted small mb-0">
+            {% if filter_type == 'unread' %}
+              You have no unread notifications right now.
+            {% elif filter_type == 'read' %}
+              No archived notifications found.
+            {% else %}
+              You have not received any notifications or alerts yet.
+            {% endif %}
+          </p>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

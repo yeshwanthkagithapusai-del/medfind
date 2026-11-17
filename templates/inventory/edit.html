@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Stock - {{ inventory_item.medicine.medicine_name }} - MediFind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="med-card p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h3 class="fw-bold mb-1 text-dark">Update Stock Quantity</h3>
+          <p class="text-muted small mb-0">{{ pharmacy.pharmacy_name }}</p>
+        </div>
+        <a href="{% url 'inventory_list' %}" class="btn btn-med-outline btn-sm">
+          &larr; Back to Inventory
+        </a>
+      </div>
+
+      <div class="p-3 bg-light rounded-3 mb-4 border">
+        <h5 class="fw-bold text-dark mb-1">{{ inventory_item.medicine.medicine_name }}</h5>
+        <div class="small text-muted mb-2">
+          Generic: {{ inventory_item.medicine.generic_name }} | Strength: {{ inventory_item.medicine.strength }}
+        </div>
+        <div>
+          Current status:
+          {% if inventory_item.availability_status == 'IN_STOCK' %}
+            <span class="badge-in-stock">In Stock ({{ inventory_item.quantity }})</span>
+          {% elif inventory_item.availability_status == 'LOW_STOCK' %}
+            <span class="badge-low-stock">Low Stock ({{ inventory_item.quantity }})</span>
+          {% else %}
+            <span class="badge-out-stock">Out of Stock</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="form-label fw-bold small text-muted">New Stock Quantity (Units) <span class="text-danger">*</span></label>
+          {{ form.quantity }}
+          <div class="form-text small">Enter updated physical count. Status updates automatically. Negative numbers are rejected.</div>
+          {{ form.quantity.errors }}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{% url 'inventory_list' %}" class="btn btn-med-outline">Cancel</a>
+          <button type="submit" class="btn btn-med-primary px-4 shadow-sm">
+            <i class="bi bi-check2-circle me-1"></i> Save Updated Stock
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

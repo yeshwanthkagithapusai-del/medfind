@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Request Medicine Availability - MediFind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="med-card p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-send-check text-primary me-2"></i>Request Medicine Availability</h3>
+          <p class="text-muted small mb-0">Direct real-time inquiry to the dispensing pharmacist</p>
+        </div>
+        <a href="{% url 'search_medicines' %}" class="btn btn-med-outline btn-sm">
+          &larr; Back to Search
+        </a>
+      </div>
+
+      <!-- Target Pharmacy & Medicine Summary -->
+      <div class="p-3 bg-light rounded-3 mb-4 border">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <span class="small text-muted fw-bold text-uppercase d-block">Requested Medicine</span>
+            <strong class="text-primary fs-5">{{ medicine.medicine_name }}</strong>
+            <div class="small text-muted">{{ medicine.generic_name }} ({{ medicine.strength }})</div>
+          </div>
+          <div class="col-md-6 border-start-md">
+            <span class="small text-muted fw-bold text-uppercase d-block">Target Pharmacy</span>
+            <strong class="text-dark fs-5">{{ pharmacy.pharmacy_name }}</strong>
+            <div class="small text-muted">{{ pharmacy.address }}, {{ pharmacy.city }}</div>
+          </div>
+        </div>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small text-muted">Quantity Needed (Units / Packs) <span class="text-danger">*</span></label>
+          {{ form.quantity_requested }}
+          {{ form.quantity_requested.errors }}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-bold small text-muted">Message or Urgency Note for Pharmacist</label>
+          {{ form.request_message }}
+          <div class="form-text small">e.g. "Prescription in hand; can you reserve 2 packs for pickup around 6 PM?"</div>
+          {{ form.request_message.errors }}
+        </div>
+
+        <div class="alert alert-info py-2 small mb-4 shadow-sm">
+          <i class="bi bi-info-circle me-1"></i> The pharmacist will receive your notification immediately and will confirm or update the availability in your dashboard.
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{% url 'search_medicines' %}" class="btn btn-med-outline">Cancel</a>
+          <button type="submit" class="btn btn-med-primary px-4 shadow-sm">
+            <i class="bi bi-send me-1"></i> Send Request to Pharmacy
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

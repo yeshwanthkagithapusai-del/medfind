@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Platform Request Monitoring - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="med-card p-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-activity text-primary me-2"></i>Platform Availability Request Monitor</h3>
+      <p class="text-muted small mb-0">Real-time oversight of all patient-pharmacy availability inquiries across the MediFind network.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="?status=all{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">All ({{ total_count }})</a>
+      <a href="?status=PENDING{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-warning {% if status_filter == 'PENDING' %}active{% endif %}">Pending</a>
+      <a href="?status=CONFIRMED{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-success {% if status_filter == 'CONFIRMED' %}active{% endif %}">Confirmed</a>
+      <a href="?status=UNAVAILABLE{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-danger {% if status_filter == 'UNAVAILABLE' %}active{% endif %}">Unavailable</a>
+      <a href="?status=CANCELLED{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-dark {% if status_filter == 'CANCELLED' %}active{% endif %}">Cancelled</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <form method="GET" class="row g-2 mb-4">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <div class="col-md-9">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" value="{{ search_q }}" class="form-control border-start-0" placeholder="Search by patient username, pharmacy name, or medicine name...">
+      </div>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-med-primary flex-grow-1">Search</button>
+      {% if search_q %}
+        <a href="?status={{ status_filter }}" class="btn btn-outline-secondary">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table med-table align-middle">
+      <thead>
+        <tr>
+          <th># Req</th>
+          <th>Patient</th>
+          <th>Medicine Requested</th>
+          <th>Target Pharmacy</th>
+          <th>Qty</th>
+          <th>Status</th>
+          <th>Pharmacy Response</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+          <tr>
+            <td><code>#{{ req.id }}</code></td>
+            <td>
+              <strong class="text-dark">{{ req.customer.username }}</strong><br>
+              <span class="small text-muted">{{ req.customer.email }}</span>
+            </td>
+            <td>
+              <strong>{{ req.medicine.medicine_name }}</strong><br>
+              <span class="small text-muted">{{ req.medicine.generic_name }} ({{ req.medicine.strength }})</span>
+            </td>
+            <td>
+              {{ req.pharmacy.pharmacy_name }}<br>
+              <span class="small text-muted">{{ req.pharmacy.city }}</span>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ req.quantity_requested }}</span></td>
+            <td>
+              {% if req.status == 'PENDING' %}
+                <span class="badge-status-pending">Pending</span>
+              {% elif req.status == 'CONFIRMED' %}
+                <span class="badge-status-confirmed">Confirmed</span>
+              {% elif req.status == 'UNAVAILABLE' %}
+                <span class="badge-status-unavailable">Unavailable</span>
+              {% elif req.status == 'CANCELLED' %}
+                <span class="badge bg-secondary-subtle text-secondary border">Cancelled</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ req.status }}</span>
+              {% endif %}
+            </td>
+            <td class="small text-muted">
+              {% if req.pharmacy_response %}
+                {{ req.pharmacy_response|truncatechars:60 }}
+              {% else %}
+                <em>No response yet</em>
+              {% endif %}
+            </td>
+            <td class="small text-muted">{{ req.created_at|date:"M d, Y h:i A" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-5">
+              <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                <h6 class="fw-bold text-dark">No requests found</h6>
+                <p class="text-muted small mb-0">No availability requests match the current filter.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-4 pt-3 border-top">
+      <div class="small text-muted">
+        Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} requests)
+      </div>
+      <nav aria-label="Request monitor pagination">
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&laquo; Prev</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+          {% endif %}
+
+          {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% elif p > page_obj.number|add:"-3" and p < page_obj.number|add:"3" %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ p }}{% if query_string %}&{{ query_string }}{% endif %}">{{ p }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next &raquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

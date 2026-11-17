@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 70" width="340" height="70">
+  <defs>
+    <linearGradient id="logoPinDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D2D3" />
+      <stop offset="60%" stop-color="#0EA5A4" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+    <linearGradient id="pillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Emblem (size 56x56, centered at x=32, y=35) -->
+  <g transform="translate(4, 5)">
+    <!-- Pin Body -->
+    <path d="M 30,2 
+             C 16.5,2 5.5,13 5.5,26.5 
+             C 5.5,41 26,55.5 29,57.5 
+             C 29.6,58 30.4,58 31,57.5 
+             C 34,55.5 54.5,41 54.5,26.5 
+             C 54.5,13 43.5,2 30,2 Z" 
+          fill="url(#logoPinDark)" />
+
+    <!-- Dark Inner Disc -->
+    <circle cx="30" cy="25" r="17" fill="#102A43" opacity="0.6" />
+
+    <!-- White Medical Cross -->
+    <rect x="26" y="13" width="8" height="24" rx="3.5" fill="#FFFFFF" />
+    <rect x="18" y="21" width="24" height="8" rx="3.5" fill="#FFFFFF" />
+
+    <!-- Integrated Pill Symbol -->
+    <g transform="rotate(-45 30 25)">
+      <rect x="26.5" y="19" width="7" height="12" rx="3.5" fill="#00D2D3" stroke="#FFFFFF" stroke-width="1" />
+      <line x1="26.5" y1="25" x2="33.5" y2="25" stroke="#FFFFFF" stroke-width="1" />
+    </g>
+  </g>
+
+  <!-- Wordmark Text -->
+  <g font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <!-- 'Medi' in White -->
+    <text x="74" y="42" font-size="32" font-weight="800" fill="#FFFFFF" letter-spacing="-0.8">Medi<tspan fill="#00D2D3">Find</tspan></text>
+    <!-- Subtitle Tagline in Clean Cyan/Muted Blue -->
+    <text x="75" y="57" font-size="9" font-weight="700" fill="#94A3B8" letter-spacing="1.8">HEALTHCARE INTELLIGENCE</text>
+  </g>
+</svg>

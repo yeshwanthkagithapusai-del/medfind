@@ -1,0 +1,282 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MediFind - Healthcare Intelligence & Pharmacy Inventory Platform{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Leaflet CSS for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- MediFind SaaS Healthcare Design System -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+  <!-- MediFind Brand Favicons & App Icons -->
+  <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/favicon-192x192.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- Medical Safety & Demonstration Notice Banner -->
+  <aside class="disclaimer-banner d-flex justify-content-between align-items-center"
+    aria-label="Academic Demonstration Notice">
+    <div class="container text-center">
+      <i class="bi bi-info-circle-fill me-1 text-warning"></i>
+      <strong>Academic Demonstration Platform:</strong> MediFind displays pharmacy-reported stock updates. Availability
+      is not a guaranteed reservation; verify prior to arrival. Not intended for emergency triage or prescription
+      issuance.
+    </div>
+  </aside>
+
+  <!-- Primary Header & Navigation Bar -->
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-medifind navbar-dark sticky-top">
+      <div class="container">
+        <a class="navbar-brand navbar-brand-logo d-flex align-items-center gap-2" href="{% url 'home' %}">
+          <img src="{% static 'images/medifind-icon.svg' %}" alt="MediFind Icon" width="34" height="34" class="d-inline-block rounded-2 shadow-sm">
+          <span class="fw-bold tracking-tight text-white fs-4">Medi<span style="color: #00D2D3;">Find</span></span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+          aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'home' %}"><i class="bi bi-house-door me-1"></i> Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'search_medicines' %}"><i class="bi bi-search me-1"></i>
+                Find Medicine &amp; Stores</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'pharmacy_discovery' %}"><i class="bi bi-hospital me-1"></i>
+                Nearby Pharmacies</a>
+            </li>
+
+            {% if user.is_authenticated %}
+            {% if user.is_admin_user %}
+            <li class="nav-item dropdown">
+              <a class="nav-link nav-link-custom dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="bi bi-shield-check me-1"></i> Admin Portal
+              </a>
+              <ul class="dropdown-menu shadow-sm">
+                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}"><i
+                      class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin_pharmacy_list' %}"><i
+                      class="bi bi-building-check me-2"></i>Verify Pharmacies</a></li>
+                <li><a class="dropdown-item" href="{% url 'manage_medicines' %}"><i
+                      class="bi bi-capsule me-2"></i>Medicine Catalogue</a></li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="/admin/" target="_blank"><i class="bi bi-gear me-2"></i>Django
+                    Backend Admin</a></li>
+              </ul>
+            </li>
+            {% elif user.is_pharmacy_owner %}
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'pharmacy_dashboard' %}"><i
+                  class="bi bi-speedometer2 me-1"></i> Pharmacy Console</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'inventory_list' %}"><i class="bi bi-boxes me-1"></i>
+                Stock Inventory</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'pharmacy_inbox' %}"><i class="bi bi-inbox me-1"></i>
+                Inquiries</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'customer_dashboard' %}"><i
+                  class="bi bi-speedometer2 me-1"></i> My Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'customer_requests' %}"><i
+                  class="bi bi-clock-history me-1"></i> My Requests</a>
+            </li>
+            {% endif %}
+            {% endif %}
+          </ul>
+
+          <ul class="navbar-nav ms-auto align-items-lg-center">
+            {% if user.is_authenticated %}
+            <li class="nav-item me-2">
+              <a class="nav-link nav-link-custom position-relative" href="{% url 'notifications' %}"
+                title="Notifications">
+                <i class="bi bi-bell fs-5"></i>
+                {% if unread_notifications_count > 0 %}
+                <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger"
+                  style="font-size: 0.65rem;">
+                  {{ unread_notifications_count }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link nav-link-custom dropdown-toggle d-flex align-items-center gap-2" href="#" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle fs-5"></i>
+                <span>{{ user.username }}</span>
+                <span class="badge bg-light text-dark text-capitalize ms-1" style="font-size: 0.7rem;">{{
+                  user.role|lower }}</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person-gear me-2"></i>My
+                    Profile</a></li>
+                {% if user.is_pharmacy_owner %}
+                <li><a class="dropdown-item" href="{% url 'edit_pharmacy_profile' %}"><i
+                      class="bi bi-shop me-2"></i>Edit Pharmacy Info</a></li>
+                {% endif %}
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i
+                      class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>
+                Sign In</a>
+            </li>
+            <li class="nav-item ms-lg-2">
+              <a class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-semibold"
+                href="{% url 'register_customer' %}">Patient Sign Up</a>
+            </li>
+            <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+              <a class="btn btn-sm btn-med-secondary rounded-pill px-3 py-1 text-white shadow-sm"
+                href="{% url 'register_pharmacy' %}">Register Pharmacy</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Global Alert Messages & Content -->
+  <main class="py-4">
+    <div class="container">
+      {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+        <div
+          class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm"
+          role="alert">
+          {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2 text-success"></i>{% endif %}
+          {% if message.tags == 'error' or message.tags == 'danger' %}<i
+            class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>{% endif %}
+          {% if message.tags == 'warning' %}<i class="bi bi-exclamation-circle-fill me-2 text-warning"></i>{% endif %}
+          {% if message.tags == 'info' %}<i class="bi bi-info-circle-fill me-2 text-info"></i>{% endif %}
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- Professional Healthcare Footer -->
+  <footer class="medifind-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="navbar-brand-logo mb-3 text-white d-flex align-items-center gap-2">
+            <img src="{% static 'images/medifind-icon.svg' %}" alt="MediFind Logo" width="28" height="28" class="rounded-1">
+            <span class="fw-bold tracking-tight text-white fs-5">Medi<span style="color: #00D2D3;">Find</span></span>
+          </div>
+          <p class="small text-light opacity-75">
+            A location-based medicine availability and pharmacy inventory intelligence platform. Eliminating physical
+            store-to-store fatigue and connecting patients with verified local pharmacies transparently.
+          </p>
+          <div class="d-flex gap-3 fs-6 mt-3 text-info">
+            <span><i class="bi bi-geo-alt me-1"></i> Location-Aware</span>
+            <span><i class="bi bi-shield-check me-1"></i> Verified Stores</span>
+            <span><i class="bi bi-clock-history me-1"></i> Real-time Stock</span>
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-6">
+          <h6 class="text-white fw-bold mb-3">Navigation</h6>
+          <ul class="list-unstyled small">
+            <li class="mb-2"><a href="{% url 'home' %}">Home</a></li>
+            <li class="mb-2"><a href="{% url 'search_medicines' %}">Find Medicines</a></li>
+            <li class="mb-2"><a href="{% url 'search_medicines' %}">Store Inventory Directory</a></li>
+            <li class="mb-2"><a href="{% url 'register_customer' %}">Patient Sign Up</a></li>
+            <li class="mb-2"><a href="{% url 'register_pharmacy' %}">Pharmacy Onboarding</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <h6 class="text-white fw-bold mb-3">Evaluation Accounts</h6>
+          <ul class="list-unstyled small opacity-75">
+            <li class="mb-2"><strong>Patient Demo:</strong> <code>customer1</code> / <code>password123</code></li>
+            <li class="mb-2"><strong>Pharmacy Demo:</strong> <code>apollo_owner</code> / <code>password123</code></li>
+            <li class="mb-2"><strong>Admin Demo:</strong> <code>admin</code> / <code>admin123</code></li>
+            <li class="mb-2"><a href="/admin/" target="_blank" class="text-info"><i
+                  class="bi bi-box-arrow-up-right me-1"></i>Django Admin</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <h6 class="text-white fw-bold mb-3">Medical Disclaimer</h6>
+          <p class="small text-light opacity-75 mb-0" style="font-size: 0.8rem; line-height: 1.5;">
+            MediFind provides reported inventory listings for academic demonstration. It does not provide medical
+            diagnoses, treatment recommendations, or pharmacologic prescriptions. Always consult a certified physician.
+          </p>
+        </div>
+      </div>
+
+      <div class="medifind-footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center">
+        <p class="mb-0 text-light opacity-50">&copy; 2026 MediFind Platform &bull; Academic Engineering Project
+          Submission.</p>
+        <div class="mt-2 mt-md-0 small text-light opacity-50">
+          <span>Three-Tier Django 5.2 LTS Monolith</span> &bull; <span>Bootstrap 5 / Leaflet / SQLite</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

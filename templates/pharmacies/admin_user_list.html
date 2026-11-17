@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}User Account Management - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="med-card p-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-people text-primary me-2"></i>User Account Management</h3>
+      <p class="text-muted small mb-0">Platform administrators can monitor registered customers and pharmacy accounts.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="?role=all{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if role_filter == 'all' %}active{% endif %}">All Users ({{ total_count }})</a>
+      <a href="?role=customer{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-primary {% if role_filter == 'customer' %}active{% endif %}">Customers</a>
+      <a href="?role=pharmacy{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-success {% if role_filter == 'pharmacy' %}active{% endif %}">Pharmacy Owners</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <form method="GET" class="row g-2 mb-4">
+    <input type="hidden" name="role" value="{{ role_filter }}">
+    <div class="col-md-9">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" value="{{ search_q }}" class="form-control border-start-0" placeholder="Search by username, email, name, or phone number...">
+      </div>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-med-primary flex-grow-1">Search</button>
+      {% if search_q %}
+        <a href="?role={{ role_filter }}" class="btn btn-outline-secondary">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table med-table align-middle">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Account Status</th>
+          <th>Registered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>
+              <strong class="text-dark">{{ user.username }}</strong>
+            </td>
+            <td>{{ user.get_full_name|default:"—" }}</td>
+            <td class="small">{{ user.email }}</td>
+            <td class="small">{{ user.phone_number|default:"—" }}</td>
+            <td>
+              {% if user.role == 'CUSTOMER' %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                  <i class="bi bi-person me-1"></i>Customer
+                </span>
+              {% elif user.role == 'PHARMACY' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                  <i class="bi bi-shop me-1"></i>Pharmacy Owner
+                </span>
+              {% else %}
+                <span class="badge bg-secondary">{{ user.get_role_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                  <i class="bi bi-check-circle me-1"></i>Active
+                </span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                  <i class="bi bi-x-circle me-1"></i>Inactive
+                </span>
+              {% endif %}
+            </td>
+            <td class="small text-muted">{{ user.date_joined|date:"M d, Y" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-people"></i></div>
+                <h6 class="fw-bold text-dark">No users found</h6>
+                <p class="text-muted small mb-0">No users match the selected filter or search criteria.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-4 pt-3 border-top">
+      <div class="small text-muted">
+        Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} users)
+      </div>
+      <nav aria-label="User list pagination">
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&laquo; Prev</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+          {% endif %}
+
+          {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% elif p > page_obj.number|add:"-3" and p < page_obj.number|add:"3" %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ p }}{% if query_string %}&{{ query_string }}{% endif %}">{{ p }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next &raquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

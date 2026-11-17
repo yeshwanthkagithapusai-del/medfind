@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Respond to Customer Request #{{ req_obj.id }} - MediFind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="med-card p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h3 class="fw-bold mb-1 text-dark">Respond to Request #{{ req_obj.id }}</h3>
+          <p class="text-muted small mb-0">{{ pharmacy.pharmacy_name }} &ndash; Customer Inquiry</p>
+        </div>
+        <a href="{% url 'pharmacy_inbox' %}" class="btn btn-med-outline btn-sm">
+          &larr; Back to Inbox
+        </a>
+      </div>
+
+      <!-- Customer Inquiry Summary -->
+      <div class="p-3 bg-light rounded-3 mb-4 border">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <span class="small text-muted fw-bold">Customer:</span>
+            <div><strong>{{ req_obj.customer.username }}</strong> ({{ req_obj.customer.phone_number }})</div>
+          </div>
+          <div class="col-md-6">
+            <span class="small text-muted fw-bold">Medicine Requested:</span>
+            <div><strong>{{ req_obj.medicine.medicine_name }}</strong> ({{ req_obj.quantity_requested }} units)</div>
+          </div>
+          {% if req_obj.request_message %}
+            <div class="col-12 mt-2 pt-2 border-top">
+              <span class="small text-muted fw-bold">Customer's Message:</span>
+              <p class="small text-dark mb-0">"{{ req_obj.request_message }}"</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="form-label fw-bold small text-muted">Availability Status Confirmation <span class="text-danger">*</span></label>
+          {{ form.status }}
+          {{ form.status.errors }}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-bold small text-muted">Pharmacist Note / Pickup Instructions</label>
+          {{ form.pharmacy_response }}
+          <div class="form-text small">
+            e.g. "We have kept 2 strips aside for you at counter 1. Pickup before 9 PM." or "Out of stock; shipment arriving tomorrow morning."
+          </div>
+          {{ form.pharmacy_response.errors }}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{% url 'pharmacy_inbox' %}" class="btn btn-med-outline">Cancel</a>
+          <button type="submit" class="btn btn-med-primary px-4 shadow-sm">
+            <i class="bi bi-send me-1"></i> Send Response to Customer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

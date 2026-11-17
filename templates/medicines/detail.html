@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ medicine.medicine_name }} - Availability & Details - MediFind{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Left Column: Medicine Monograph -->
+  <div class="col-lg-5">
+    <div class="med-card p-4">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+          {{ medicine.category }}
+        </span>
+        <span class="badge bg-secondary-subtle text-secondary rounded-pill">
+          {{ medicine.dosage_form }}
+        </span>
+      </div>
+
+      <h3 class="fw-bold text-dark mb-1">{{ medicine.medicine_name }}</h3>
+      <p class="text-muted mb-3">Strength / Concentration: <strong>{{ medicine.strength }}</strong></p>
+
+      <div class="border-top pt-3 mb-3">
+        <label class="small text-muted fw-bold text-uppercase">Generic Active Ingredient</label>
+        <p class="fw-semibold text-dark fs-5 mb-0">{{ medicine.generic_name }}</p>
+      </div>
+
+      <div class="border-top pt-3 mb-3">
+        <label class="small text-muted fw-bold text-uppercase">Dosage Form</label>
+        <p class="text-dark mb-0">{{ medicine.get_dosage_form_display }}</p>
+      </div>
+
+      {% if medicine.description %}
+      <div class="border-top pt-3 mb-3">
+        <label class="small text-muted fw-bold text-uppercase">Therapeutic Indications & Description</label>
+        <p class="text-muted small mb-0">{{ medicine.description }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Medical Disclaimer Box -->
+      <div class="alert alert-light border rounded-3 mt-4 mb-3 p-3" style="background-color: rgba(16, 42, 67, 0.03); border-left: 4px solid var(--med-secondary) !important;">
+        <div class="d-flex gap-2">
+          <i class="bi bi-shield-exclamation text-primary fs-5 flex-shrink-0"></i>
+          <div class="small">
+            <strong class="text-dark d-block mb-1">Medical Advice &amp; Prescriptions Disclaimer</strong>
+            <p class="text-secondary small mb-0" style="line-height: 1.4;">
+              MediFind provides reported pharmacy inventory listings for informational purposes only. Do not self-medicate or alter dosage without certified physician consultation. Prescription medications require a valid doctor's prescription upon collection.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-top pt-3">
+        <a href="{% url 'search_medicines' %}" class="btn btn-outline-secondary btn-sm w-100">
+          &larr; Back to Search Results
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Pharmacies Carrying This Medicine -->
+  <div class="col-lg-7">
+    <div class="med-card p-4 mb-4">
+      <h4 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-hospital text-primary me-2"></i>Pharmacies With Reported Stock</span>
+        <span class="badge bg-light text-dark fs-6">{{ stock_records.count }} Location{{ stock_records.count|pluralize
+          }}</span>
+      </h4>
+
+      {% if stock_records %}
+      <div class="d-flex flex-column gap-3 mb-4">
+        {% for item in stock_records %}
+        <div class="p-3 border rounded-3 bg-light-subtle">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2">
+            <div>
+              <h5 class="fw-bold text-primary mb-1">
+                <a href="{% url 'pharmacy_detail' item.pharmacy.id %}" class="text-decoration-none text-primary">
+                  {{ item.pharmacy.pharmacy_name }}
+                </a>
+              </h5>
+              <p class="small text-muted mb-1">
+                <i class="bi bi-geo-alt me-1 text-danger"></i> {{ item.pharmacy.address }}, {{ item.pharmacy.city }} -
+                {{ item.pharmacy.pincode }}
+              </p>
+              <p class="small text-muted mb-2">
+                <i class="bi bi-telephone me-1 text-success"></i> {{ item.pharmacy.phone_number }}
+              </p>
+              <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                {% if item.availability_status == 'IN_STOCK' %}
+                <span class="badge-in-stock">Reported In Stock ({{ item.quantity }} units)</span>
+                {% elif item.availability_status == 'LOW_STOCK' %}
+                <span class="badge-low-stock">Low Stock ({{ item.quantity }} units left)</span>
+                {% else %}
+                <span class="badge-out-stock">Reported Out of Stock</span>
+                {% endif %}
+                <span class="text-muted small">
+                  <i class="bi bi-clock-history me-1"></i>Reported: {{ item.updated_at|date:"M d, Y h:i A" }} ({{
+                  item.updated_at|timesince }} ago)
+                </span>
+                {% if item.is_stale %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle small">
+                  <i class="bi bi-exclamation-circle me-1"></i>Reported &gt;24h ago &bull; Inquire to confirm
+                </span>
+                {% else %}
+                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle small">
+                  <i class="bi bi-check-circle me-1"></i>Fresh update
+                </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex flex-column gap-2 mt-2 mt-md-0" style="min-width: 160px;">
+              {% if user.is_authenticated and user.is_customer %}
+              <a href="{% url 'create_request' item.pharmacy.id medicine.id %}" class="btn btn-med-primary btn-sm">
+                <i class="bi bi-send-check me-1"></i> Request
+              </a>
+              {% elif not user.is_authenticated %}
+              <a href="{% url 'login' %}?next={% url 'create_request' item.pharmacy.id medicine.id %}"
+                class="btn btn-med-primary btn-sm">
+                Login to Request
+              </a>
+              {% endif %}
+              <a href="tel:{{ item.pharmacy.phone_number }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-telephone me-1"></i> Call Store
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if map_pins %}
+      <div class="mt-3">
+        <h6 class="fw-bold text-muted mb-2"><i class="bi bi-pin-map me-1 text-primary"></i> Pharmacy Geographic
+          Locations</h6>
+        <div id="map" style="height: 300px;"></div>
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-exclamation-circle fs-2 d-block mb-2"></i>
+        <p>No participating pharmacy has currently reported stock for this formulation.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if map_pins %}
+{{ map_pins|json_script:"detail-pins-data" }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const pinsData = JSON.parse(document.getElementById('detail-pins-data').textContent || '[]');
+    if (pinsData.length === 0) return;
+
+    const map = L.map('map').setView([pinsData[0].lat, pinsData[0].lng], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const bounds = [];
+    pinsData.forEach(p => {
+      const marker = L.marker([p.lat, p.lng]).addTo(map);
+      marker.bindPopup(`<strong>${p.name}</strong><br>${p.address}<br><strong>${p.status}</strong>`);
+      bounds.push([p.lat, p.lng]);
+    });
+    map.fitBounds(bounds, { padding: [30, 30] });
+  });
+</script>
+{% endif %}
+{% endblock %}

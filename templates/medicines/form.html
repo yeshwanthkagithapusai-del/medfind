@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Admin Catalogue - MediFind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="med-card p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <h3 class="fw-bold mb-0 text-dark">{{ title }}</h3>
+        <a href="{% url 'manage_medicines' %}" class="btn btn-med-outline btn-sm">
+          &larr; Back to Catalogue
+        </a>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Brand / Medicine Name <span class="text-danger">*</span></label>
+            {{ form.medicine_name }}
+            {{ form.medicine_name.errors }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Generic / Active Compound <span class="text-danger">*</span></label>
+            {{ form.generic_name }}
+            {{ form.generic_name.errors }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Strength / Dosage <span class="text-danger">*</span></label>
+            {{ form.strength }}
+            {{ form.strength.errors }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Dosage Form <span class="text-danger">*</span></label>
+            {{ form.dosage_form }}
+            {{ form.dosage_form.errors }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Therapeutic Category <span class="text-danger">*</span></label>
+            {{ form.category }}
+            {{ form.category.errors }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small text-muted">Description / Indications</label>
+            {{ form.description }}
+            {{ form.description.errors }}
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+          <a href="{% url 'manage_medicines' %}" class="btn btn-med-outline">Cancel</a>
+          <button type="submit" class="btn btn-med-primary px-4 shadow-sm">
+            <i class="bi bi-save me-1"></i> Save to Catalogue
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

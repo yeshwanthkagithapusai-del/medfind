@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Inquiries Inbox - MediFind{% endblock %}
+
+{% block content %}
+<div class="med-card p-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-inbox text-primary me-2"></i>Incoming Availability Requests</h3>
+      <p class="text-muted small mb-0">{{ pharmacy.pharmacy_name }} &ndash; Direct Customer Inquiries</p>
+    </div>
+    <div class="btn-group flex-wrap">
+      <a href="?status=PENDING" class="btn btn-sm btn-outline-warning {% if status_filter == 'PENDING' %}active{% endif %}">
+        Pending ({{ pending_count }})
+      </a>
+      <a href="?status=CONFIRMED" class="btn btn-sm btn-outline-success {% if status_filter == 'CONFIRMED' %}active{% endif %}">
+        Confirmed ({{ confirmed_count }})
+      </a>
+      <a href="?status=UNAVAILABLE" class="btn btn-sm btn-outline-danger {% if status_filter == 'UNAVAILABLE' %}active{% endif %}">
+        Unavailable ({{ unavailable_count }})
+      </a>
+      <a href="?status=CANCELLED" class="btn btn-sm btn-outline-secondary {% if status_filter == 'CANCELLED' %}active{% endif %}">
+        Cancelled ({{ cancelled_count }})
+      </a>
+      <a href="?status=ALL" class="btn btn-sm btn-outline-dark {% if status_filter == 'ALL' %}active{% endif %}">
+        All History ({{ total_count }})
+      </a>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table med-table align-middle">
+      <thead>
+        <tr>
+          <th># Req</th>
+          <th>Customer</th>
+          <th>Medicine Requested</th>
+          <th>Quantity</th>
+          <th>Customer Message</th>
+          <th>Status</th>
+          <th>Your Response</th>
+          <th>Received At</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+          <tr>
+            <td><code>#{{ req.id }}</code></td>
+            <td>
+              <strong class="text-dark">{{ req.customer.username }}</strong><br>
+              <span class="small text-muted">{{ req.customer.phone_number }}</span>
+            </td>
+            <td>
+              <strong class="text-primary">{{ req.medicine.medicine_name }}</strong><br>
+              <span class="small text-muted">{{ req.medicine.generic_name }} ({{ req.medicine.strength }})</span>
+            </td>
+            <td><span class="badge bg-light text-dark border fs-6">{{ req.quantity_requested }}</span></td>
+            <td>
+              {% if req.request_message %}
+                <span class="small text-secondary">{{ req.request_message }}</span>
+              {% else %}
+                <span class="text-muted small fst-italic">None</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if req.status == 'PENDING' %}
+                <span class="badge-status-pending">Pending</span>
+              {% elif req.status == 'CONFIRMED' %}
+                <span class="badge-status-confirmed">Confirmed</span>
+              {% elif req.status == 'UNAVAILABLE' %}
+                <span class="badge-status-unavailable">Unavailable</span>
+              {% elif req.status == 'CANCELLED' %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Cancelled</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ req.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if req.pharmacy_response %}
+                <span class="small text-muted">{{ req.pharmacy_response }}</span>
+              {% else %}
+                <span class="text-muted small fst-italic">Not answered yet</span>
+              {% endif %}
+            </td>
+            <td class="small text-muted">{{ req.created_at|date:"M d, Y h:i A" }}</td>
+            <td class="text-end">
+              {% if req.status == 'CANCELLED' %}
+                <span class="badge bg-light text-muted border py-1 px-2" title="Customer cancelled inquiry">Cancelled</span>
+              {% else %}
+                <a href="{% url 'respond_request' req.id %}" class="btn btn-sm btn-med-primary rounded-pill px-3">
+                  <i class="bi bi-reply me-1"></i> Respond
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-5">
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <i class="bi bi-inbox"></i>
+                </div>
+                <h6 class="fw-bold text-dark">No inquiries in this filter</h6>
+                <p class="text-muted small mb-0">Incoming customer availability inquiries will appear here automatically.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-4 pt-3 border-top">
+      <div class="small text-muted">
+        Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} inquiries)
+      </div>
+      <nav aria-label="Requests inbox pagination">
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&laquo; Prev</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+          {% endif %}
+
+          {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% elif p > page_obj.number|add:"-3" and p < page_obj.number|add:"3" %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ p }}{% if query_string %}&{{ query_string }}{% endif %}">{{ p }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next &raquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

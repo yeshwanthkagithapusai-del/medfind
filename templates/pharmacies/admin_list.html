@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify & Manage Pharmacies - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="med-card p-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-building-check text-primary me-2"></i>Pharmacy Verification Portal</h3>
+      <p class="text-muted small mb-0">Platform administrators must verify and approve registered pharmacies before their stock is published to the public search.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <a href="?status=all{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">All ({{ total_count }})</a>
+      <a href="?status=pending{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">Pending Approval</a>
+      <a href="?status=approved{% if search_q %}&q={{ search_q }}{% endif %}" class="btn btn-sm btn-outline-success {% if status_filter == 'approved' %}active{% endif %}">Approved Only</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <form method="GET" class="row g-2 mb-4">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <div class="col-md-9">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" value="{{ search_q }}" class="form-control border-start-0" placeholder="Search by pharmacy name, reg number, city, or owner username...">
+      </div>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-med-primary flex-grow-1">Search</button>
+      {% if search_q %}
+        <a href="?status={{ status_filter }}" class="btn btn-outline-secondary">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table med-table align-middle">
+      <thead>
+        <tr>
+          <th>Pharmacy Name</th>
+          <th>Reg / License #</th>
+          <th>Location</th>
+          <th>Owner</th>
+          <th>Contact</th>
+          <th>Registered</th>
+          <th>Status</th>
+          <th class="text-end">Verification Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pharmacies %}
+          <tr>
+            <td class="fw-bold text-dark">
+              <a href="{% url 'pharmacy_detail' p.id %}" class="text-decoration-none" style="color: var(--med-primary);">
+                {{ p.pharmacy_name }}
+              </a>
+            </td>
+            <td><code>{{ p.registration_number }}</code></td>
+            <td>{{ p.city }}, {{ p.state }}<br><span class="small text-muted">{{ p.pincode }}</span></td>
+            <td>{{ p.owner.username }}<br><span class="small text-muted">{{ p.owner.email }}</span></td>
+            <td>{{ p.phone_number }}</td>
+            <td class="small text-muted">{{ p.created_at|date:"M d, Y" }}</td>
+            <td>
+              {% if p.is_approved %}
+                <span class="badge bg-success-subtle text-success border rounded-pill">
+                  <i class="bi bi-check-circle-fill me-1"></i> Approved
+                </span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-warning border rounded-pill">
+                  <i class="bi bi-clock-fill me-1"></i> Pending Verification
+                </span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <form method="POST" action="{% url 'toggle_pharmacy_approval' p.id %}" class="d-inline">
+                {% csrf_token %}
+                {% if p.is_approved %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Revoke Approval">
+                    <i class="bi bi-x-circle me-1"></i> Revoke
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-sm btn-success" title="Approve Pharmacy">
+                    <i class="bi bi-check-circle me-1"></i> Approve
+                  </button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-5">
+              <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-building"></i></div>
+                <h6 class="fw-bold text-dark">No pharmacies found</h6>
+                <p class="text-muted small mb-0">No pharmacies match the selected filter or search criteria.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-4 pt-3 border-top">
+      <div class="small text-muted">
+        Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} pharmacies)
+      </div>
+      <nav aria-label="Pharmacy list pagination">
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">&laquo; Prev</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+          {% endif %}
+
+          {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% elif p > page_obj.number|add:"-3" and p < page_obj.number|add:"3" %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ p }}{% if query_string %}&{{ query_string }}{% endif %}">{{ p }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next &raquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

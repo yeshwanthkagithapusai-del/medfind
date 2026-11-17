@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - MediFind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="med-card p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h3 class="fw-bold mb-1 text-dark"><i class="bi bi-person-gear text-primary me-2"></i>Account &amp; Profile Management</h3>
+          <p class="text-muted small mb-0">Manage your profile credentials and facility details</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'password_change' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-key me-1"></i> Change Password
+          </a>
+          <a href="{% url 'dashboard' %}" class="btn btn-med-outline btn-sm">
+            &larr; Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Account Overview Banner -->
+      <div class="p-3 bg-light rounded-3 mb-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border gap-2">
+        <div>
+          <span class="small text-muted fw-bold text-uppercase d-block">Account Role</span>
+          <strong class="text-primary fs-5">{{ user.get_role_display }}</strong>
+        </div>
+        <div>
+          <span class="small text-muted fw-bold text-uppercase d-block">Username</span>
+          <code>{{ user.username }}</code>
+        </div>
+        <div>
+          <span class="small text-muted fw-bold text-uppercase d-block">Member Since</span>
+          <span class="small text-muted">{{ user.date_joined|date:"M d, Y" }}</span>
+        </div>
+      </div>
+
+      <!-- Section 1: Personal Account Information -->
+      <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+        <i class="bi bi-person-badge me-2"></i>Personal Contact Information
+      </h5>
+
+      <form method="POST" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="user">
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">First Name</label>
+            {{ user_form.first_name }}
+            {{ user_form.first_name.errors }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Last Name</label>
+            {{ user_form.last_name }}
+            {{ user_form.last_name.errors }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small text-muted">Email Address <span class="text-danger">*</span></label>
+          {{ user_form.email }}
+          {{ user_form.email.errors }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold small text-muted">Personal Phone Number</label>
+          {{ user_form.phone_number }}
+          {{ user_form.phone_number.errors }}
+        </div>
+
+        <div class="text-end">
+          <button type="submit" class="btn btn-med-primary btn-sm px-4">
+            <i class="bi bi-save me-1"></i> Save Personal Details
+          </button>
+        </div>
+      </form>
+
+      <!-- Section 2: Pharmacy Facility Profile (Only for Pharmacy Owners) -->
+      {% if user.is_pharmacy_owner and pharmacy %}
+        <div class="mt-4 pt-4 border-top">
+          <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <h5 class="fw-bold text-secondary mb-0">
+              <i class="bi bi-hospital me-2"></i>Pharmacy Store Profile
+            </h5>
+            <div>
+              {% if pharmacy.is_approved %}
+                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                  <i class="bi bi-shield-check me-1"></i> Approved &amp; Publicly Visible
+                </span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                  <i class="bi bi-clock-history me-1"></i> Pending Administrative Review
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="alert alert-light border small mb-3">
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <span class="text-muted d-block">Drug License / Registration #:</span>
+                <strong class="text-dark"><code>{{ pharmacy.registration_number }}</code></strong>
+              </div>
+              <div class="col-sm-6">
+                <span class="text-muted d-block">Verification Status:</span>
+                <strong class="{% if pharmacy.is_approved %}text-success{% else %}text-warning{% endif %}">
+                  {% if pharmacy.is_approved %}Active Partner Pharmacy{% else %}Under Review by Platform Admin{% endif %}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="pharmacy">
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-muted">Pharmacy Trade Name <span class="text-danger">*</span></label>
+                {{ pharmacy_form.pharmacy_name }}
+                {{ pharmacy_form.pharmacy_name.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-muted">Store Contact Phone <span class="text-danger">*</span></label>
+                {{ pharmacy_form.phone_number }}
+                {{ pharmacy_form.phone_number.errors }}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-bold small text-muted">Store Street Address <span class="text-danger">*</span></label>
+                {{ pharmacy_form.address }}
+                {{ pharmacy_form.address.errors }}
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">City <span class="text-danger">*</span></label>
+                {{ pharmacy_form.city }}
+                {{ pharmacy_form.city.errors }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">State <span class="text-danger">*</span></label>
+                {{ pharmacy_form.state }}
+                {{ pharmacy_form.state.errors }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">Pincode <span class="text-danger">*</span></label>
+                {{ pharmacy_form.pincode }}
+                {{ pharmacy_form.pincode.errors }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-muted">Latitude (GPS)</label>
+                {{ pharmacy_form.latitude }}
+                {{ pharmacy_form.latitude.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-muted">Longitude (GPS)</label>
+                {{ pharmacy_form.longitude }}
+                {{ pharmacy_form.longitude.errors }}
+              </div>
+            </div>
+
+            <div class="text-end">
+              <button type="submit" class="btn btn-med-secondary btn-sm px-4 text-white">
+                <i class="bi bi-save me-1"></i> Save Store Details
+              </button>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

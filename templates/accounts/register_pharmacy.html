@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Your Pharmacy - MediFind Healthcare Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+  <div class="col-lg-8">
+    <div class="med-card p-4 p-md-5">
+      <div class="text-center mb-4">
+        <div class="text-secondary fs-1 mb-2" style="color: var(--med-secondary) !important;"><i class="bi bi-hospital"></i></div>
+        <h3 class="fw-bold text-dark mb-1">Pharmacy Retailer Registration</h3>
+        <p class="text-muted small">Register your pharmacy store to digitize inventory and respond to customer availability inquiries.</p>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+          <i class="bi bi-person-badge me-2"></i>Pharmacy Owner Account Details
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Owner First Name</label>
+            {{ form.owner_first_name }}
+            {{ form.owner_first_name.errors }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Owner Last Name</label>
+            {{ form.owner_last_name }}
+            {{ form.owner_last_name.errors }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Owner Username <span class="text-danger">*</span></label>
+            {{ form.username }}
+            {{ form.username.errors }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Official Email <span class="text-danger">*</span></label>
+            {{ form.email }}
+            {{ form.email.errors }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Owner Phone <span class="text-danger">*</span></label>
+            {{ form.owner_phone }}
+            {{ form.owner_phone.errors }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Account Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              {{ form.password }}
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('id_pharm_password', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            {{ form.password.errors }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Confirm Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              {{ form.confirm_password }}
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('id_pharm_confirm_password', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            {{ form.confirm_password.errors }}
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+          <i class="bi bi-shop me-2"></i>Pharmacy Store Details
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Pharmacy Business Name <span class="text-danger">*</span></label>
+            {{ form.pharmacy_name }}
+            {{ form.pharmacy_name.errors }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">Drug License / Registration # <span class="text-danger">*</span></label>
+            {{ form.registration_number }}
+            {{ form.registration_number.errors }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small text-muted">Store Street Address <span class="text-danger">*</span></label>
+            {{ form.address }}
+            {{ form.address.errors }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">City <span class="text-danger">*</span></label>
+            {{ form.city }}
+            {{ form.city.errors }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">State <span class="text-danger">*</span></label>
+            {{ form.state }}
+            {{ form.state.errors }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Pincode <span class="text-danger">*</span></label>
+            {{ form.pincode }}
+            {{ form.pincode.errors }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Public Store Phone <span class="text-danger">*</span></label>
+            {{ form.phone_number }}
+            {{ form.phone_number.errors }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Latitude (Optional GPS)</label>
+            {{ form.latitude }}
+            {{ form.latitude.errors }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted">Longitude (Optional GPS)</label>
+            {{ form.longitude }}
+            {{ form.longitude.errors }}
+          </div>
+        </div>
+
+        <div class="alert alert-warning small mb-4 shadow-sm">
+          <i class="bi bi-shield-lock me-1"></i> <strong>Verification Note:</strong> Your pharmacy will be registered in <em>Pending Verification</em> status. The administrator will review your registration license before your inventory is publicly searchable.
+        </div>
+
+        <button type="submit" class="btn btn-med-secondary w-100 py-2 mb-3 shadow-sm text-white">
+          Submit Pharmacy Registration
+        </button>
+
+        <div class="text-center small text-muted">
+          Already registered? <a href="{% url 'login' %}" class="fw-bold text-primary text-decoration-none">Sign In</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      if (icon) { icon.classList.remove('bi-eye'); icon.classList.add('bi-eye-slash'); }
+    } else {
+      input.type = 'password';
+      if (icon) { icon.classList.remove('bi-eye-slash'); icon.classList.add('bi-eye'); }
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}System Administrator Operations Console - MediFind{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Admin Welcome Banner -->
+  <div class="col-12">
+    <div class="med-card p-4 p-md-5 text-white" style="background: linear-gradient(135deg, var(--med-primary-dark) 0%, var(--med-primary-light) 100%);">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+          <span class="badge bg-danger rounded-pill mb-2 fw-bold" style="font-size: 0.75rem;">Operations Overseer</span>
+          <h2 class="fw-bold mb-1 text-white">MediFind Operations Command Console</h2>
+          <p class="mb-0 text-white-50 small">System oversight, pharmacy license verification, drug taxonomy curation, and network performance analytics.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'admin_pharmacy_list' %}?status=pending" class="btn btn-warning rounded-pill px-3 fw-bold text-dark shadow-sm">
+            <i class="bi bi-shield-check me-1"></i> Verify Stores ({{ pending_approvals }})
+          </a>
+          <a href="{% url 'admin_user_list' %}" class="btn btn-outline-light rounded-pill px-3">
+            <i class="bi bi-people me-1"></i> Manage Users
+          </a>
+          <a href="{% url 'admin_request_monitor' %}" class="btn btn-outline-light rounded-pill px-3">
+            <i class="bi bi-activity me-1"></i> Monitor Requests
+          </a>
+          <a href="{% url 'add_medicine' %}" class="btn btn-med-secondary rounded-pill px-3 shadow-sm text-white">
+            <i class="bi bi-plus-circle me-1"></i> Add Medicine
+          </a>
+          <a href="/admin/" target="_blank" class="btn btn-outline-light rounded-pill px-3">
+            <i class="bi bi-gear me-1"></i> Django Admin
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric / Stat Tiles -->
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-primary);">{{ total_customers }}</div>
+      <div class="stat-label small">Patients / Seekers</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-info, #0EA5E9);">{{ total_pharmacy_owners }}</div>
+      <div class="stat-label small">Pharmacy Owners</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-success);">{{ approved_pharmacies }}</div>
+      <div class="stat-label small">Approved Stores</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-warning);">{{ pending_approvals }}</div>
+      <div class="stat-label small">Pending Verification</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-secondary);">{{ total_medicines }}</div>
+      <div class="stat-label small">Catalogue Medicines</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-warning);">{{ active_requests }}</div>
+      <div class="stat-label small">Active Inquiries</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-success);">{{ completed_requests }}</div>
+      <div class="stat-label small">Completed Requests</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-xl">
+    <div class="stat-tile flex-column text-center p-3">
+      <div class="stat-value fs-3" style="color: var(--med-accent-dark);">{{ total_inventory }}</div>
+      <div class="stat-label small">Inventory Stock Lots</div>
+    </div>
+  </div>
+
+  <!-- Pending Pharmacies Verification Queue -->
+  <div class="col-lg-7">
+    <div class="med-card p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-building-exclamation text-warning me-2"></i>Pending Pharmacy Approvals
+        </h5>
+        <a href="{% url 'admin_pharmacy_list' %}?status=pending" class="small text-primary text-decoration-none fw-bold">Manage All &rarr;</a>
+      </div>
+
+      {% if pending_pharmacies_list %}
+        <div class="table-responsive">
+          <table class="table med-table align-middle">
+            <thead>
+              <tr>
+                <th>Pharmacy</th>
+                <th>Reg / License #</th>
+                <th>City</th>
+                <th>Owner</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pending_pharmacies_list %}
+                <tr>
+                  <td>
+                    <strong class="text-dark">{{ p.pharmacy_name }}</strong><br>
+                    <span class="text-muted small">{{ p.phone_number }}</span>
+                  </td>
+                  <td><code>{{ p.registration_number }}</code></td>
+                  <td>{{ p.city }}</td>
+                  <td>{{ p.owner.username }}</td>
+                  <td class="text-end">
+                    <form method="POST" action="{% url 'toggle_pharmacy_approval' p.id %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-success py-1 px-3" style="font-size: 0.8rem;">
+                        Approve
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon" style="width: 52px; height: 52px; font-size: 1.5rem; background-color: var(--med-success-bg); color: var(--med-success);">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <h6 class="fw-bold text-dark">Verification Queue Clear</h6>
+          <p class="text-muted small mb-0">All registered pharmacies have been verified and approved.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Visual Analytics Chart: Drug Categories -->
+  <div class="col-lg-5">
+    <div class="med-card p-4 h-100">
+      <h5 class="fw-bold mb-3 pb-2 border-bottom text-dark">
+        <i class="bi bi-bar-chart-line text-primary me-2"></i>Catalogue Indications Distribution
+      </h5>
+      <div style="height: 240px; position: relative;">
+        <canvas id="categoryBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Platform Availability Inquiries -->
+  <div class="col-12">
+    <div class="med-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-activity text-primary me-2"></i>Recent Patient-Pharmacy Inquiries
+        </h5>
+        <span class="badge bg-light text-dark">Live Platform Audit</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table med-table align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Patient</th>
+              <th>Medicine</th>
+              <th>Target Pharmacy</th>
+              <th>Units</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in recent_requests %}
+              <tr>
+                <td><code>#{{ req.id }}</code></td>
+                <td><strong>{{ req.customer.username }}</strong></td>
+                <td>{{ req.medicine.medicine_name }}</td>
+                <td>{{ req.pharmacy.pharmacy_name }} ({{ req.pharmacy.city }})</td>
+                <td><strong>{{ req.quantity_requested }}</strong></td>
+                <td>
+                  {% if req.status == 'PENDING' %}
+                    <span class="badge-status-pending">Pending</span>
+                  {% elif req.status == 'CONFIRMED' %}
+                    <span class="badge-status-confirmed">Confirmed</span>
+                  {% elif req.status == 'UNAVAILABLE' %}
+                    <span class="badge-status-unavailable">Unavailable</span>
+                  {% elif req.status == 'CANCELLED' %}
+                    <span class="badge-status-cancelled">Cancelled</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ req.status }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted small">{{ req.created_at|date:"M d, Y h:i A" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ cat_labels|json_script:"admin-cat-labels" }}
+{{ cat_data|json_script:"admin-cat-data" }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const labels = JSON.parse(document.getElementById('admin-cat-labels').textContent || '[]');
+    const data = JSON.parse(document.getElementById('admin-cat-data').textContent || '[]');
+
+    const ctx = document.getElementById('categoryBarChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Formulations in Master Catalogue',
+          data: data,
+          backgroundColor: '#0EA5A4',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

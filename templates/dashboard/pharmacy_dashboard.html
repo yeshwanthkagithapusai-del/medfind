@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pharmacy Management Console - {{ pharmacy.pharmacy_name }} - MediFind{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Unapproved Warning Banner if applicable -->
+  {% if not pharmacy.is_approved %}
+    <div class="col-12">
+      <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 border-warning shadow-sm" role="alert">
+        <div>
+          <i class="bi bi-clock-history fs-4 me-2 align-middle text-warning"></i>
+          <strong>Verification In Progress:</strong> Your pharmacy account is currently under administrative review. Your inventory data is saved but hidden from public medicine discovery until approved by a platform administrator.
+        </div>
+        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Under Review</span>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Store Header Banner -->
+  <div class="col-12">
+    <div class="med-card p-4 p-md-5 text-white" style="background: linear-gradient(135deg, var(--med-primary) 0%, var(--med-secondary) 100%);">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-white text-dark rounded-pill fw-bold" style="font-size: 0.75rem;">
+              <i class="bi bi-hospital text-primary me-1"></i> Pharmacy Console
+            </span>
+            {% if pharmacy.is_approved %}
+              <span class="badge bg-success rounded-pill" style="font-size: 0.75rem;">
+                <i class="bi bi-check-circle-fill me-1"></i> Verified Partner
+              </span>
+            {% else %}
+              <span class="badge bg-warning text-dark rounded-pill" style="font-size: 0.75rem;">
+                <i class="bi bi-hourglass-split me-1"></i> Pending Approval
+              </span>
+            {% endif %}
+            <span class="badge bg-white-50 text-white rounded-pill small" style="font-size: 0.75rem;">
+              Reg: <code>{{ pharmacy.registration_number }}</code>
+            </span>
+          </div>
+          <h2 class="fw-bold mb-1 text-white">{{ pharmacy.pharmacy_name }}</h2>
+          <p class="mb-0 text-white-50 small">
+            <i class="bi bi-geo-alt me-1 text-danger"></i> {{ pharmacy.address }}, {{ pharmacy.city }} &bull; 
+            <i class="bi bi-telephone me-1 text-success"></i> {{ pharmacy.phone_number }}
+          </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{% url 'inventory_add' %}" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm" style="color: var(--med-primary);">
+            <i class="bi bi-plus-circle me-1"></i> Add Stock
+          </a>
+          <a href="{% url 'inventory_list' %}" class="btn btn-outline-light rounded-pill px-3 fw-semibold">
+            <i class="bi bi-boxes me-1"></i> Full Inventory
+          </a>
+          <a href="{% url 'edit_pharmacy_profile' %}" class="btn btn-outline-light rounded-pill px-3 fw-semibold">
+            <i class="bi bi-gear me-1"></i> Store Settings
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 Analytics Metric Cards -->
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-primary);">{{ total_items }}</div>
+        <div class="stat-label">My Stocked Lots</div>
+      </div>
+      <div class="stat-icon" style="background-color: rgba(16, 42, 67, 0.08); color: var(--med-primary);"><i class="bi bi-boxes"></i></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-success);">{{ in_stock_count }}</div>
+        <div class="stat-label">In Stock (&gt; 10)</div>
+      </div>
+      <div class="stat-icon" style="background-color: var(--med-success-bg); color: var(--med-success);"><i class="bi bi-check2-circle"></i></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-warning);">{{ low_stock_count }}</div>
+        <div class="stat-label">Low Stock (1-10)</div>
+      </div>
+      <div class="stat-icon" style="background-color: var(--med-warning-bg); color: var(--med-warning);"><i class="bi bi-exclamation-triangle"></i></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-danger);">{{ out_stock_count }}</div>
+        <div class="stat-label">Out of Stock (0)</div>
+      </div>
+      <div class="stat-icon" style="background-color: var(--med-danger-bg); color: var(--med-danger);"><i class="bi bi-x-circle"></i></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-accent-dark);">{{ pending_requests_count }}</div>
+        <div class="stat-label">Pending Inquiries</div>
+      </div>
+      <div class="stat-icon" style="background-color: #e0f2fe; color: var(--med-accent-dark);"><i class="bi bi-envelope-exclamation"></i></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="stat-tile">
+      <div>
+        <div class="stat-value" style="color: var(--med-secondary);">{{ total_catalog_medicines }}</div>
+        <div class="stat-label">Master Catalog</div>
+      </div>
+      <div class="stat-icon" style="background-color: rgba(14, 165, 164, 0.1); color: var(--med-secondary);"><i class="bi bi-capsule"></i></div>
+    </div>
+  </div>
+
+  <!-- Low Stock & Stockout Monitoring Alert Panel -->
+  {% if low_stock_alerts %}
+    <div class="col-12">
+      <div class="med-card p-4 border-warning shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-4 text-warning"><i class="bi bi-exclamation-octagon-fill"></i></span>
+            <div>
+              <h5 class="fw-bold mb-0 text-dark">Stock Replenishment Alerts</h5>
+              <span class="text-muted small">Items requiring immediate re-order or lot updating</span>
+            </div>
+          </div>
+          <span class="badge bg-warning text-dark">{{ low_stock_alerts|length }} Alert{{ low_stock_alerts|length|pluralize }}</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table med-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Medicine Formulation</th>
+                <th>Category</th>
+                <th>Current Quantity</th>
+                <th>Status</th>
+                <th>Freshness Tier</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in low_stock_alerts %}
+                <tr>
+                  <td>
+                    <strong>{{ item.medicine.medicine_name }}</strong><br>
+                    <span class="small text-muted">{{ item.medicine.generic_name }} ({{ item.medicine.strength }})</span>
+                  </td>
+                  <td><span class="badge bg-light text-secondary border">{{ item.medicine.category }}</span></td>
+                  <td>
+                    <span class="fs-6 fw-bold {% if item.quantity == 0 %}text-danger{% else %}text-warning{% endif %}">
+                      {{ item.quantity }} units left
+                    </span>
+                  </td>
+                  <td>
+                    {% if item.availability_status == 'OUT_OF_STOCK' %}
+                      <span class="badge-out-stock">Out of Stock</span>
+                    {% else %}
+                      <span class="badge-low-stock">Low Stock</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if item.freshness_tier == 'FRESH' %}
+                      <span class="badge bg-success-subtle text-success border">Fresh (&lt;24h)</span>
+                    {% elif item.freshness_tier == 'MODERATE' %}
+                      <span class="badge bg-warning-subtle text-warning border">Moderate (24-48h)</span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger border">Stale (&gt;48h)</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'inventory_edit' item.id %}" class="btn btn-sm btn-med-primary">
+                      <i class="bi bi-plus-circle me-1"></i> Restock
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Stock Distribution Chart & Incoming Inquiries -->
+  <div class="col-lg-5">
+    <div class="med-card p-4 h-100">
+      <h5 class="fw-bold mb-3 pb-2 border-bottom text-dark">
+        <i class="bi bi-pie-chart text-primary me-2"></i>Inventory Stock Breakdown
+      </h5>
+      <div style="height: 240px; position: relative;">
+        <canvas id="inventoryDoughnutChart"></canvas>
+      </div>
+      <div class="text-center mt-3 small text-muted">
+        Real-time distribution of reported medicine availability lots.
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="med-card p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-inbox text-primary me-2"></i>Recent Customer Inquiries
+          </h5>
+          <span class="text-muted small">Requests sent to your pharmacy</span>
+        </div>
+        <a href="{% url 'pharmacy_inbox' %}" class="small text-primary text-decoration-none fw-bold">
+          Inbox ({{ pending_requests_count }} Pending) &rarr;
+        </a>
+      </div>
+
+      {% if recent_requests %}
+        <div class="table-responsive">
+          <table class="table med-table align-middle">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Medicine</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in recent_requests %}
+                <tr>
+                  <td>
+                    <strong>{{ req.customer.username }}</strong><br>
+                    <span class="small text-muted">{{ req.customer.phone_number|default:"No phone" }}</span>
+                  </td>
+                  <td>
+                    <strong>{{ req.medicine.medicine_name }}</strong><br>
+                    <span class="small text-muted">{{ req.medicine.strength }}</span>
+                  </td>
+                  <td><strong>{{ req.quantity_requested }}</strong></td>
+                  <td>
+                    {% if req.status == 'PENDING' %}
+                      <span class="badge-status-pending">Pending</span>
+                    {% elif req.status == 'CONFIRMED' %}
+                      <span class="badge-status-confirmed">Confirmed</span>
+                    {% elif req.status == 'UNAVAILABLE' %}
+                      <span class="badge-status-unavailable">Unavailable</span>
+                    {% elif req.status == 'CANCELLED' %}
+                      <span class="badge bg-secondary-subtle text-secondary border">Cancelled</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ req.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if req.status == 'PENDING' %}
+                      <a href="{% url 'respond_request' req.id %}" class="btn btn-sm btn-med-primary py-1 px-3">
+                        Respond
+                      </a>
+                    {% else %}
+                      <span class="small text-muted">{{ req.updated_at|date:"M d" }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon" style="width: 52px; height: 52px; font-size: 1.4rem;">
+            <i class="bi bi-envelope-open"></i>
+          </div>
+          <p class="text-muted small mb-0">No customer availability inquiries received yet.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Inventory Updates Table -->
+  <div class="col-12">
+    <div class="med-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-clock-history text-primary me-2"></i>Recent Stock Updates
+          </h5>
+          <span class="text-muted small">Latest stock adjustments in your store</span>
+        </div>
+        <a href="{% url 'inventory_list' %}" class="small text-primary text-decoration-none fw-bold">
+          Full Inventory Table ({{ total_items }}) &rarr;
+        </a>
+      </div>
+
+      {% if recent_inventory %}
+        <div class="table-responsive">
+          <table class="table med-table align-middle">
+            <thead>
+              <tr>
+                <th>Medicine Formulation</th>
+                <th>Category</th>
+                <th>Strength</th>
+                <th>Stock Quantity</th>
+                <th>Status</th>
+                <th>Freshness Tier</th>
+                <th>Last Updated</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in recent_inventory %}
+                <tr>
+                  <td><strong>{{ item.medicine.medicine_name }}</strong></td>
+                  <td><span class="badge bg-light text-secondary border">{{ item.medicine.category }}</span></td>
+                  <td>{{ item.medicine.strength }}</td>
+                  <td>
+                    <span class="fs-6 fw-bold {% if item.quantity == 0 %}text-danger{% elif item.quantity <= 10 %}text-warning{% else %}text-success{% endif %}">
+                      {{ item.quantity }} units
+                    </span>
+                  </td>
+                  <td>
+                    {% if item.availability_status == 'IN_STOCK' %}
+                      <span class="badge-in-stock">In Stock</span>
+                    {% elif item.availability_status == 'LOW_STOCK' %}
+                      <span class="badge-low-stock">Low Stock</span>
+                    {% else %}
+                      <span class="badge-out-stock">Out of Stock</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if item.freshness_tier == 'FRESH' %}
+                      <span class="badge bg-success-subtle text-success border">Fresh</span>
+                    {% elif item.freshness_tier == 'MODERATE' %}
+                      <span class="badge bg-warning-subtle text-warning border">Moderate</span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger border">Stale</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ item.updated_at|date:"M d, Y h:i A" }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'inventory_edit' item.id %}" class="btn btn-sm btn-med-outline py-1 px-3">
+                      Update
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon">
+            <i class="bi bi-boxes"></i>
+          </div>
+          <h6 class="fw-bold text-dark">No Inventory Stocked</h6>
+          <p class="text-muted small mb-3">Add your first medicine from the master catalogue to start publishing availability.</p>
+          <a href="{% url 'inventory_add' %}" class="btn btn-sm btn-med-primary rounded-pill px-4">
+            <i class="bi bi-plus-circle me-1"></i> Add Medicine Stock
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ chart_labels|json_script:"inv-chart-labels" }}
+{{ chart_data|json_script:"inv-chart-data" }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const labels = JSON.parse(document.getElementById('inv-chart-labels').textContent || '[]');
+    const data = JSON.parse(document.getElementById('inv-chart-data').textContent || '[]');
+
+    const ctx = document.getElementById('inventoryDoughnutChart');
+    if (ctx) {
+      new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: ['#16A34A', '#F59E0B', '#DC2626'],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 12 },
+                padding: 16
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

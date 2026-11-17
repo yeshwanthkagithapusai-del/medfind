@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MediFind – Location-Based Medicine Availability & Pharmacy Inventory Intelligence{% endblock %}
+
+{% block content %}
+</div> <!-- Break out of container for full-width hero -->
+
+<!-- 1. Hero Section -->
+<section class="hero-section text-center">
+  <div class="container">
+    <div class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold mb-3 shadow-sm" style="font-size: 0.85rem;">
+      <i class="bi bi-shield-check text-success me-1"></i> Verified Pharmacy Inventory Intelligence
+    </div>
+    <h1 class="hero-title">From Store-to-Store Search to<br><span style="color: var(--med-accent);">Instant Medicine Discovery</span></h1>
+    <p class="hero-subtitle">
+      Eliminate physical pharmacy exhaustion. Search prescription medications, verify live store stock, calculate nearby distances, and send availability inquiries before leaving home.
+    </p>
+
+    <!-- Global Search Bar Form -->
+    <div class="search-box-container mb-4">
+      <form action="{% url 'search_medicines' %}" method="GET" class="d-flex flex-column flex-md-row gap-2">
+        <div class="d-flex align-items-center flex-grow-1 px-2">
+          <i class="bi bi-search text-muted fs-5 ms-2 me-1"></i>
+          <input type="text" name="q" class="search-input-main" placeholder="Search medicine (e.g., Dolo 650, Azithromycin, Insulin, Metformin)..." required>
+        </div>
+        <div class="d-flex align-items-center border-start-md px-2" style="min-width: 220px;">
+          <i class="bi bi-geo-alt text-muted fs-5 ms-2 me-1"></i>
+          <input type="text" name="city" class="search-input-main" placeholder="City or Pincode...">
+        </div>
+        <button type="submit" class="btn-search-main d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-search"></i> Find Now
+        </button>
+      </form>
+    </div>
+
+    <!-- Quick Search Pill Suggestions & Secondary CTA -->
+    <div class="d-flex justify-content-center flex-wrap gap-2 text-white small mb-3">
+      <span class="opacity-75 align-self-center">Common Inquiries:</span>
+      <a href="{% url 'search_medicines' %}?q=Dolo" class="badge bg-white text-dark text-decoration-none rounded-pill px-3 py-2">Dolo 650</a>
+      <a href="{% url 'search_medicines' %}?q=Amoxicillin" class="badge bg-white text-dark text-decoration-none rounded-pill px-3 py-2">Amoxicillin</a>
+      <a href="{% url 'search_medicines' %}?q=Insulin" class="badge bg-white text-dark text-decoration-none rounded-pill px-3 py-2">Insulin Glargine</a>
+      <a href="{% url 'search_medicines' %}?q=Asthalin" class="badge bg-white text-dark text-decoration-none rounded-pill px-3 py-2">Asthalin Inhaler</a>
+      <a href="{% url 'search_medicines' %}?q=Telma" class="badge bg-white text-dark text-decoration-none rounded-pill px-3 py-2">Telma 40</a>
+    </div>
+
+    <!-- Secondary Hero CTA -->
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{% url 'pharmacy_discovery' %}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold shadow-sm">
+        <i class="bi bi-geo-alt me-1"></i> Explore Nearby Pharmacies
+      </a>
+      <a href="{% url 'search_medicines' %}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold shadow-sm">
+        <i class="bi bi-search me-1"></i> Search Medicine Stock
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Re-open main container for body content -->
+<div class="container py-5">
+
+  <!-- 2. Live Platform Metrics (Using actual database counts) -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="stat-tile">
+        <div>
+          <div class="stat-value" style="color: var(--med-primary);">{{ total_pharmacies }}</div>
+          <div class="stat-label">Verified Partner Pharmacies</div>
+        </div>
+        <div class="stat-icon" style="background-color: rgba(16, 42, 67, 0.08); color: var(--med-primary);">
+          <i class="bi bi-hospital"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-tile">
+        <div>
+          <div class="stat-value" style="color: var(--med-secondary);">{{ total_medicines }}+</div>
+          <div class="stat-label">Master Catalogue Formulations</div>
+        </div>
+        <div class="stat-icon" style="background-color: rgba(14, 165, 164, 0.1); color: var(--med-secondary);">
+          <i class="bi bi-capsule"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-tile">
+        <div>
+          <div class="stat-value" style="color: var(--med-success);">{{ total_in_stock }}+</div>
+          <div class="stat-label">Active In-Stock Inventory Lots</div>
+        </div>
+        <div class="stat-icon" style="background-color: var(--med-success-bg); color: var(--med-success);">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. How MediFind Works (4-Step Workflow) -->
+  <div class="text-center mb-5">
+    <span class="badge bg-light text-primary px-3 py-2 rounded-pill fw-bold mb-2">Patient Journey</span>
+    <h2 class="fw-bold mb-2">How MediFind Streamlines Medicine Access</h2>
+    <p class="text-muted" style="max-width: 650px; margin: 0 auto;">Four simple steps to locate essential medications transparently across your neighborhood</p>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <!-- Step 1: Search for a medicine -->
+    <div class="col-lg-3 col-md-6">
+      <div class="med-card p-4 h-100 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 60px; height: 60px; background-color: rgba(16, 42, 67, 0.08); color: var(--med-primary); font-size: 1.5rem;">
+          <i class="bi bi-search"></i>
+        </div>
+        <h5 class="fw-bold mb-2">1. Search Medicine</h5>
+        <p class="text-secondary small mb-0">
+          Search formulation by brand name, generic chemical compound, dosage form, or therapeutic category.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 2: Discover nearby pharmacies -->
+    <div class="col-lg-3 col-md-6">
+      <div class="med-card p-4 h-100 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 60px; height: 60px; background-color: rgba(14, 165, 164, 0.1); color: var(--med-secondary); font-size: 1.5rem;">
+          <i class="bi bi-geo-alt"></i>
+        </div>
+        <h5 class="fw-bold mb-2">2. Discover Pharmacies</h5>
+        <p class="text-secondary small mb-0">
+          Find licensed partner stores near your location with calculated distances and interactive Leaflet map pins.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 3: Check availability -->
+    <div class="col-lg-3 col-md-6">
+      <div class="med-card p-4 h-100 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 60px; height: 60px; background-color: rgba(56, 189, 248, 0.15); color: #0284c7; font-size: 1.5rem;">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <h5 class="fw-bold mb-2">3. Check Availability</h5>
+        <p class="text-secondary small mb-0">
+          Inspect reported stock quantities (<span class="text-success fw-bold">In Stock</span>, <span class="text-warning fw-bold">Low Stock</span>) and timestamp freshness indicators.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 4: Contact or submit request -->
+    <div class="col-lg-3 col-md-6">
+      <div class="med-card p-4 h-100 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 60px; height: 60px; background-color: var(--med-success-bg); color: var(--med-success); font-size: 1.5rem;">
+          <i class="bi bi-send-check"></i>
+        </div>
+        <h5 class="fw-bold mb-2">4. Request or Contact</h5>
+        <p class="text-secondary small mb-0">
+          Call the pharmacist directly or submit an instant availability request to receive confirmation before traveling.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Featured Approved Pharmacies (Using actual database records) -->
+  {% if featured_pharmacies %}
+    <div class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="fw-bold mb-1">Featured Verified Pharmacies</h3>
+          <p class="text-muted small mb-0">Licensed and administratively vetted healthcare partners</p>
+        </div>
+        <a href="{% url 'search_medicines' %}" class="btn btn-sm btn-med-outline rounded-pill">View All Directory &rarr;</a>
+      </div>
+
+      <div class="row g-4">
+        {% for pharmacy in featured_pharmacies %}
+          <div class="col-md-4">
+            <div class="med-card p-4 h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="fw-bold text-dark mb-0">{{ pharmacy.pharmacy_name }}</h5>
+                  <span class="badge bg-success rounded-pill" style="font-size: 0.72rem;">
+                    <i class="bi bi-check-circle-fill me-1"></i> Verified
+                  </span>
+                </div>
+                <p class="small text-secondary mb-2">
+                  <i class="bi bi-geo-alt text-muted me-1"></i> {{ pharmacy.address }}, {{ pharmacy.city }} ({{ pharmacy.pincode }})
+                </p>
+                <p class="small text-secondary mb-3">
+                  <i class="bi bi-telephone text-muted me-1"></i> {{ pharmacy.phone_number }}
+                </p>
+              </div>
+              <div>
+                <a href="{% url 'pharmacy_detail' pharmacy.id %}" class="btn btn-sm btn-med-outline w-100">
+                  View Available Stock &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- 5. Popular Therapeutic Categories -->
+  <div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold mb-1">Browse Therapeutic Categories</h3>
+        <p class="text-muted small mb-0">Explore formulations grouped by medical indication</p>
+      </div>
+      <a href="{% url 'search_medicines' %}" class="btn btn-sm btn-med-outline rounded-pill">View Master Catalogue &rarr;</a>
+    </div>
+
+    <div class="row g-3">
+      {% for cat_val, cat_label in categories %}
+        <div class="col-lg-4 col-md-6">
+          <a href="{% url 'search_medicines' %}?category={{ cat_val|urlencode }}" class="text-decoration-none">
+            <div class="med-card p-3 d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded-3 fs-4" style="background-color: rgba(14, 165, 164, 0.1); color: var(--med-secondary);">
+                  <i class="bi bi-capsule"></i>
+                </div>
+                <div>
+                  <h6 class="fw-bold text-dark mb-0">{{ cat_label }}</h6>
+                  <span class="small text-muted">Click to view items</span>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right text-muted"></i>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 6. Healthcare Safety & Prescription Protocol Information -->
+  <div class="med-card p-4 mb-5" style="border-left: 5px solid var(--med-secondary); background-color: #f0fdfa;">
+    <div class="d-flex align-items-start gap-3">
+      <div class="fs-2 text-teal" style="color: var(--med-secondary);"><i class="bi bi-prescription2"></i></div>
+      <div>
+        <h5 class="fw-bold text-dark mb-1">Prescription Safety & Patient Guidelines</h5>
+        <p class="small text-secondary mb-2">
+          MediFind promotes responsible pharmaceutical distribution in compliance with the Drugs and Cosmetics Act.
+        </p>
+        <ul class="small text-secondary mb-0 ps-3">
+          <li><strong>Schedule H &amp; X Medications:</strong> A valid physical prescription issued by a registered medical practitioner is mandatory upon pickup at the dispensing pharmacy.</li>
+          <li><strong>Stock Freshness Verification:</strong> Inventory timestamps reflect the latest pharmacy management upload. In-stock badges indicate reported store availability, not guaranteed physical holds.</li>
+          <li><strong>Emergency Care:</strong> For severe medical trauma, acute symptoms, or life-threatening emergencies, immediately call emergency triage services or visit the nearest hospital emergency room.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Academic Demonstration Credentials Callout Card -->
+  <div class="med-card p-4 mb-5" style="border-left: 5px solid var(--med-accent); background-color: #f0f9ff;">
+    <div class="d-flex align-items-start gap-3">
+      <div class="fs-2" style="color: var(--med-accent-dark);"><i class="bi bi-key-fill"></i></div>
+      <div class="w-100">
+        <h5 class="fw-bold text-dark mb-1">Pre-Seeded Demonstration Accounts for Project Evaluation</h5>
+        <p class="small text-secondary mb-3">
+          This system contains pre-seeded demonstration data. You can log in using any of the following accounts:
+        </p>
+        <div class="row g-2 small">
+          <div class="col-md-4">
+            <div class="p-3 bg-white rounded border">
+              <strong>Admin Account:</strong><br>
+              <code>admin</code> / <code>admin123</code><br>
+              <span class="text-muted">Full approval &amp; catalogue controls</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white rounded border">
+              <strong>Pharmacy Owner Account:</strong><br>
+              <code>apollo_owner</code> / <code>password123</code><br>
+              <span class="text-muted">Manage inventory &amp; customer requests</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white rounded border">
+              <strong>Customer Account:</strong><br>
+              <code>customer1</code> / <code>password123</code><br>
+              <span class="text-muted">Search medicines &amp; send requests</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Pharmacy Onboarding CTA Banner -->
+  <div class="med-card p-5 text-center text-white" style="background: linear-gradient(135deg, var(--med-primary), var(--med-secondary));">
+    <h2 class="fw-bold mb-3 text-white">Are You a Licensed Pharmacy Retailer?</h2>
+    <p class="mx-auto mb-4" style="max-width: 650px; opacity: 0.95;">
+      Digitize your stock, prevent footfall frustration, and help neighborhood patients find the critical prescriptions they need. Register your pharmacy today for verified platform listing.
+    </p>
+    <a href="{% url 'register_pharmacy' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold shadow" style="color: var(--med-primary);">
+      <i class="bi bi-shop me-2"></i> Register Your Pharmacy Store
+    </a>
+  </div>
+
+{% endblock %}

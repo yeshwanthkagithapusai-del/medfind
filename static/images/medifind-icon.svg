@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background / Pin Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#102A43" />
+      <stop offset="100%" stop-color="#0B1D3A" />
+    </linearGradient>
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D2D3" />
+      <stop offset="45%" stop-color="#0EA5A4" />
+      <stop offset="100%" stop-color="#0B4F6C" />
+    </linearGradient>
+    <linearGradient id="crossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F0FDF4" />
+    </linearGradient>
+    <linearGradient id="pillAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#051329" flood-opacity="0.35"/>
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#00D2D3" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded App Icon Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Outer Pin Shadow & Body -->
+  <g filter="url(#shadow)">
+    <!-- Location Pin Contour -->
+    <path d="M 256,64 
+             C 162,64 86,140 86,234 
+             C 86,346 226,438 248,452 
+             C 253,455 259,455 264,452 
+             C 286,438 426,346 426,234 
+             C 426,140 350,64 256,64 Z" 
+          fill="url(#pinGrad)" />
+  </g>
+
+  <!-- Pin Inner Glow Accent Ring -->
+  <path d="M 256,76 
+           C 169,76 98,147 98,234 
+           C 98,336 228,423 250,438 
+           C 254,440 258,440 262,438 
+           C 284,423 414,336 414,234 
+           C 414,147 343,76 256,76 Z" 
+        fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4" />
+
+  <!-- Central Circular Well inside Pin -->
+  <circle cx="256" cy="226" r="126" fill="#102A43" opacity="0.45" />
+
+  <!-- Medical Cross Elements (with rounded corners) -->
+  <g filter="url(#glow)">
+    <!-- Vertical Bar of Medical Cross -->
+    <rect x="224" y="142" width="64" height="168" rx="20" fill="url(#crossGrad)" />
+    <!-- Horizontal Bar of Medical Cross -->
+    <rect x="172" y="194" width="168" height="64" rx="20" fill="url(#crossGrad)" />
+  </g>
+
+  <!-- Central Integrated Capsule / Medicine Pill (Tilted 45 degrees) -->
+  <g transform="rotate(-45 256 226)">
+    <!-- Capsule Container Outline -->
+    <rect x="232" y="180" width="48" height="92" rx="24" fill="#0EA5A4" stroke="#FFFFFF" stroke-width="6" />
+    <!-- Top Half of Capsule (Cyan/Blue) -->
+    <path d="M 232,204 C 232,190.7 242.7,180 256,180 C 269.3,180 280,190.7 280,204 L 280,226 L 232,226 Z" 
+          fill="url(#pillAccent)" />
+    <!-- Dividing line between capsule halves -->
+    <line x1="232" y1="226" x2="280" y2="226" stroke="#FFFFFF" stroke-width="5" />
+    <!-- Bottom Half of Capsule (Teal/White highlight) -->
+    <path d="M 232,226 L 280,226 L 280,248 C 280,261.3 269.3,272 256,272 C 242.7,272 232,261.3 232,248 Z" 
+          fill="#FFFFFF" />
+  </g>
+
+  <!-- Center Pin Dot Indicator -->
+  <circle cx="256" cy="448" r="6" fill="#00D2D3" opacity="0.9" />
+</svg>

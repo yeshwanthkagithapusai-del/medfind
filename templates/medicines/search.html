@@ -1,0 +1,497 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Medicines & Nearby Pharmacies - MediFind{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Left Sidebar Filters -->
+  <div class="col-lg-3">
+    <div class="med-card p-4 sticky-top" style="top: 80px; z-index: 10;">
+      <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between text-dark">
+        <span><i class="bi bi-funnel text-primary me-2"></i>Filter Results</span>
+        <a href="{% url 'search_medicines' %}" class="small text-muted text-decoration-none">Reset All</a>
+      </h5>
+
+      <form method="GET" action="{% url 'search_medicines' %}" id="searchFilterForm">
+        <!-- Keyword -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Medicine / Generic / Brand</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by name...">
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Therapeutic Category</label>
+          <select name="category" class="form-select">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Dosage Form Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Dosage Form</label>
+          <select name="dosage_form" class="form-select">
+            <option value="">All Dosage Forms</option>
+            {% for df in dosage_forms %}
+              <option value="{{ df }}" {% if dosage_form == df %}selected{% endif %}>{{ df }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Strength Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Strength / Concentration</label>
+          <input type="text" name="strength" value="{{ strength }}" class="form-control" placeholder="e.g. 500mg, 10ml, 1g">
+        </div>
+
+        <!-- City Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">City</label>
+          <select name="city" class="form-select">
+            <option value="">All Locations</option>
+            {% for c in cities %}
+              <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Pincode Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Pincode</label>
+          <input type="text" name="pincode" value="{{ pincode }}" class="form-control" placeholder="e.g. 500034">
+        </div>
+
+        <!-- Stock Status Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Stock Status</label>
+          <select name="status" class="form-select">
+            <option value="">Any Availability</option>
+            <option value="IN_STOCK" {% if status == 'IN_STOCK' %}selected{% endif %}>In Stock Only</option>
+            <option value="LOW_STOCK" {% if status == 'LOW_STOCK' %}selected{% endif %}>Low Stock (&lt; 10)</option>
+            <option value="OUT_OF_STOCK" {% if status == 'OUT_OF_STOCK' %}selected{% endif %}>Out of Stock</option>
+          </select>
+        </div>
+
+        <!-- Proximity Radius Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Proximity Radius</label>
+          <select name="radius" class="form-select">
+            <option value="" {% if not radius %}selected{% endif %}>Any Distance</option>
+            <option value="5" {% if radius == '5' %}selected{% endif %}>Within 5 km</option>
+            <option value="10" {% if radius == '10' %}selected{% endif %}>Within 10 km</option>
+            <option value="25" {% if radius == '25' %}selected{% endif %}>Within 25 km</option>
+            <option value="50" {% if radius == '50' %}selected{% endif %}>Within 50 km</option>
+          </select>
+          <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Radius requires active location coordinates.</small>
+        </div>
+
+        <!-- Sort Order -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Sort By</label>
+          <select name="sort" class="form-select">
+            <option value="">Default (Status &amp; Time)</option>
+            <option value="distance" {% if sort_by == 'distance' %}selected{% endif %}>Nearest Distance (Haversine)</option>
+          </select>
+        </div>
+
+        <!-- Hidden coordinates -->
+        <input type="hidden" name="lat" id="userLatInput" value="{{ user_lat }}">
+        <input type="hidden" name="lng" id="userLngInput" value="{{ user_lng }}">
+
+        <!-- Geolocation Button -->
+        <div class="mb-4">
+          <button type="button" class="btn btn-outline-info btn-sm w-100 fw-semibold" id="btnGeoLocation" onclick="detectUserLocation()">
+            <i class="bi bi-crosshair me-1"></i> {% if has_user_coords %}Update My Location{% else %}Use My Location{% endif %}
+          </button>
+          <div id="geoFeedback" class="small text-muted mt-1 text-center" style="font-size: 0.75rem;">
+            {% if has_user_coords %}
+              <div class="d-flex align-items-center justify-content-between mt-1 text-success">
+                <span><i class="bi bi-check-circle-fill me-1"></i>Coordinates linked</span>
+                <a href="javascript:void(0)" onclick="clearUserLocation()" class="text-danger text-decoration-none">Clear</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-med-primary w-100 shadow-sm">
+          <i class="bi bi-arrow-clockwise me-1"></i> Apply Filters
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Results Column -->
+  <div class="col-lg-9">
+
+    <!-- Header & Result Counts -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+      <div>
+        <h4 class="fw-bold mb-1 text-dark">
+          {% if query %}
+            Results for <span class="text-primary">"{{ query }}"</span>
+          {% else %}
+            All Pharmacy Inventory Stock
+          {% endif %}
+        </h4>
+        <p class="text-muted small mb-0">
+          Showing <strong>{{ total_results }}</strong> stock record{{ total_results|pluralize }} from verified licensed pharmacies.
+        </p>
+      </div>
+
+      <!-- Map View Toggle -->
+      <div class="mt-2 mt-md-0 btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary btn-sm active" id="btnListView" onclick="toggleView('list')">
+          <i class="bi bi-list-ul me-1"></i> List View
+        </button>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnMapView" onclick="toggleView('map')">
+          <i class="bi bi-map me-1"></i> Interactive Map
+        </button>
+      </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="mapContainer" class="mb-4" style="display: none;">
+      <div class="med-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i> OpenStreetMap Pharmacy Locations</span>
+          <span class="badge bg-light text-dark">Click pin for stock &amp; contact</span>
+        </div>
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <!-- Stock Records List -->
+    <div id="resultsList">
+      {% if results %}
+        <div class="row g-3">
+          {% for item in results %}
+            <div class="col-12">
+              <div class="med-card p-4">
+                <div class="row align-items-center">
+
+                  <!-- Medicine Information -->
+                  <div class="col-md-5 border-end-md">
+                    <div class="d-flex align-items-start gap-2 mb-1">
+                      <span class="badge bg-light text-primary border rounded-pill small">
+                        {{ item.medicine.category }}
+                      </span>
+                      <span class="badge bg-light text-secondary rounded-pill small">
+                        {{ item.medicine.dosage_form }}
+                      </span>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-1">
+                      <a href="{% url 'medicine_detail' item.medicine.id %}" class="text-dark text-decoration-none">
+                        {{ item.medicine.medicine_name }}
+                      </a>
+                    </h5>
+                    <p class="small text-muted mb-2">
+                      Generic: <strong>{{ item.medicine.generic_name }}</strong> ({{ item.medicine.strength }})
+                    </p>
+
+                    <!-- Stock Status Badge -->
+                    <div>
+                      {% if item.availability_status == 'IN_STOCK' %}
+                        <span class="badge-in-stock">Reported In Stock ({{ item.quantity }} units)</span>
+                      {% elif item.availability_status == 'LOW_STOCK' %}
+                        <span class="badge-low-stock">Low Stock ({{ item.quantity }} units left)</span>
+                      {% else %}
+                        <span class="badge-out-stock">Reported Out of Stock</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Pharmacy Information -->
+                  <div class="col-md-4 py-2 py-md-0 border-end-md">
+                    <h6 class="fw-bold mb-1">
+                      <a href="{% url 'pharmacy_detail' item.pharmacy.id %}" class="text-decoration-none" style="color: var(--med-primary);">
+                        <i class="bi bi-hospital me-1"></i> {{ item.pharmacy.pharmacy_name }}
+                      </a>
+                    </h6>
+                    <p class="small text-muted mb-1">
+                      <i class="bi bi-geo-alt me-1 text-danger"></i> {{ item.pharmacy.address }}, {{ item.pharmacy.city }} - {{ item.pharmacy.pincode }}
+                      {% if item.distance_km is not None %}
+                        <span class="badge bg-info-subtle text-info-emphasis border ms-1">
+                          <i class="bi bi-signpost-split me-1"></i>{{ item.distance_km }} km away
+                        </span>
+                      {% endif %}
+                    </p>
+                    <p class="small text-muted mb-1">
+                      <i class="bi bi-telephone me-1 text-success"></i> {{ item.pharmacy.phone_number }}
+                    </p>
+                    <div class="small mt-1" style="font-size: 0.75rem;">
+                      <span class="text-muted"><i class="bi bi-clock-history me-1"></i>Reported: {{ item.updated_at|date:"M d, Y h:i A" }} ({{ item.updated_at|timesince }} ago)</span>
+                      {% if item.is_stale %}
+                        <div class="mt-1">
+                          <span class="badge bg-warning-subtle text-warning-emphasis border">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Reported &gt;24h ago &bull; Inquire to confirm
+                          </span>
+                        </div>
+                      {% else %}
+                        <div class="mt-1">
+                          <span class="badge bg-success-subtle text-success-emphasis border">
+                            <i class="bi bi-check-circle me-1"></i>Fresh update ({{ item.updated_at|timesince }} ago)
+                          </span>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                    {% if user.is_authenticated and user.is_customer %}
+                      <a href="{% url 'create_request' item.pharmacy.id item.medicine.id %}" class="btn btn-med-primary btn-sm w-100 mb-2">
+                        <i class="bi bi-send-check me-1"></i> Request Availability
+                      </a>
+                    {% elif not user.is_authenticated %}
+                      <a href="{% url 'login' %}?next={% url 'create_request' item.pharmacy.id item.medicine.id %}" class="btn btn-med-primary btn-sm w-100 mb-2">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Login to Request
+                      </a>
+                    {% endif %}
+
+                    <a href="tel:{{ item.pharmacy.phone_number }}" class="btn btn-outline-success btn-sm w-100 mb-2">
+                      <i class="bi bi-telephone me-1"></i> Call Pharmacy
+                    </a>
+
+                    {% if item.pharmacy.latitude and item.pharmacy.longitude %}
+                      <button type="button" class="btn btn-med-outline btn-sm w-100" onclick="showOnMap({{ item.pharmacy.latitude }}, {{ item.pharmacy.longitude }}, '{{ item.pharmacy.pharmacy_name|escapejs }}', '{{ item.medicine.medicine_name|escapejs }}')">
+                        <i class="bi bi-pin-map me-1"></i> Pin on Map
+                      </button>
+                    {% endif %}
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if page_obj.has_other_pages %}
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
+            <div class="small text-muted">
+              Showing page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong> (Total: {{ total_results }} listings)
+            </div>
+            <nav aria-label="Search results pagination">
+              <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1" title="First Page">&laquo; First</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+                  <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for pnum in page_obj.paginator.page_range %}
+                  {% if pnum == page_obj.number %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ pnum }}</span></li>
+                  {% elif pnum > page_obj.number|add:"-3" and pnum < page_obj.number|add:"3" %}
+                    <li class="page-item">
+                      <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pnum }}">{{ pnum }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.paginator.num_pages }}" title="Last Page">Last &raquo;</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">Next</span></li>
+                  <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="bi bi-search"></i>
+          </div>
+          <h5 class="fw-bold text-dark">No Matching Medicine Stock Found</h5>
+          <p class="text-muted small mx-auto mb-3" style="max-width: 520px;">
+            We couldn't find any participating pharmacies currently reporting stock matching your criteria.
+          </p>
+          <div class="alert alert-light border small text-start mx-auto mb-3" style="max-width: 520px;">
+            <strong class="d-block mb-1 text-dark"><i class="bi bi-lightbulb text-warning me-1"></i>Search Suggestions:</strong>
+            <ul class="mb-0 ps-3 text-secondary">
+              <li>Verify the spelling of the medicine brand name or active generic salt.</li>
+              <li>Try broader terms (e.g., search <em>Paracetamol</em> instead of a specific branded combination).</li>
+              <li>Clear category, dosage form, or strength filters to widen your discovery scope.</li>
+              <li>Clear city or pincode restrictions to see pharmacies in neighboring districts.</li>
+            </ul>
+          </div>
+          <a href="{% url 'search_medicines' %}" class="btn btn-med-primary btn-sm rounded-pill px-4">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset All Filters
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ map_pins|json_script:"map-pins-data" }}
+{{ user_coords|json_script:"user-coords-data" }}
+<script>
+  let mapInstance = null;
+  let markersLayer = null;
+
+  function initLeafletMap() {
+    if (mapInstance !== null) return;
+
+    // Center on user coordinates or default Hyderabad region
+    const userCoords = JSON.parse(document.getElementById('user-coords-data').textContent || 'null');
+    const defaultCenter = userCoords ? [userCoords.lat, userCoords.lng] : [17.415582, 78.435783];
+    const defaultZoom = userCoords ? 12 : 11;
+
+    mapInstance = L.map('map').setView(defaultCenter, defaultZoom);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapInstance);
+
+    markersLayer = L.layerGroup().addTo(mapInstance);
+
+    const bounds = [];
+
+    // Add customer location marker if coordinates active
+    if (userCoords && userCoords.lat && userCoords.lng) {
+      const userMarker = L.circleMarker([userCoords.lat, userCoords.lng], {
+        radius: 9,
+        fillColor: '#0EA5A4',
+        color: '#FFFFFF',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.9
+      }).addTo(markersLayer);
+      userMarker.bindPopup('<strong style="color: #0EA5A4;"><i class="bi bi-person-fill"></i> Your Detected Location</strong>');
+      bounds.push([userCoords.lat, userCoords.lng]);
+    }
+
+    const pinsData = JSON.parse(document.getElementById('map-pins-data').textContent || '[]');
+    if (pinsData.length > 0) {
+      pinsData.forEach(p => {
+        const marker = L.marker([p.lat, p.lng]).addTo(markersLayer);
+        const distBadge = p.distance_km !== null ? `<span style="font-size: 0.75rem; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 10px; font-weight: 600;">${p.distance_km} km away</span>` : '';
+        const popupContent = `
+          <div style="min-width: 190px; font-family: 'Plus Jakarta Sans', sans-serif;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: #102A43;">${p.name}</strong>
+            </div>
+            ${distBadge}
+            <div style="font-size: 0.82rem; color: #64748B; margin-top: 4px;">${p.address}</div>
+            <div style="font-size: 0.82rem; color: #16A34A; margin-top: 2px;"><strong>${p.medicine}</strong>: ${p.status}</div>
+            <div style="margin-top: 6px;">
+              <a href="tel:${p.phone}" style="font-size: 0.82rem; color: #0EA5A4; text-decoration: none; font-weight: 600;">📞 ${p.phone}</a>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupContent);
+        bounds.push([p.lat, p.lng]);
+      });
+      if (bounds.length > 0) {
+        mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      }
+    }
+  }
+
+  function toggleView(viewType) {
+    const mapDiv = document.getElementById('mapContainer');
+    const btnList = document.getElementById('btnListView');
+    const btnMap = document.getElementById('btnMapView');
+
+    if (viewType === 'map') {
+      mapDiv.style.display = 'block';
+      btnMap.classList.add('active');
+      btnList.classList.remove('active');
+      initLeafletMap();
+      setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 200);
+    } else {
+      mapDiv.style.display = 'none';
+      btnList.classList.add('active');
+      btnMap.classList.remove('active');
+    }
+  }
+
+  function detectUserLocation() {
+    const feedback = document.getElementById('geoFeedback');
+    const latInput = document.getElementById('userLatInput');
+    const lngInput = document.getElementById('userLngInput');
+    const form = document.getElementById('searchFilterForm');
+
+    if (!navigator.geolocation) {
+      if (feedback) feedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Geolocation is not supported by your browser. Please search manually by City or Pincode.</span>';
+      return;
+    }
+
+    if (feedback) feedback.innerHTML = '<span class="text-primary"><i class="bi bi-hourglass-split"></i> Detecting GPS coordinates...</span>';
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        latInput.value = position.coords.latitude.toFixed(6);
+        lngInput.value = position.coords.longitude.toFixed(6);
+        if (feedback) feedback.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Location acquired! Refreshing...</span>';
+        const sortSelect = form.querySelector('select[name="sort"]');
+        if (sortSelect) sortSelect.value = 'distance';
+        form.submit();
+      },
+      (error) => {
+        let msg = "Unable to retrieve location.";
+        if (error.code === 1) { // PERMISSION_DENIED
+          msg = "Location permission denied. You can search manually by City or Pincode.";
+        } else if (error.code === 2) { // POSITION_UNAVAILABLE
+          msg = "Location unavailable. Please enter your City or Pincode.";
+        } else if (error.code === 3) { // TIMEOUT
+          msg = "Location request timed out. Please retry or enter City/Pincode.";
+        }
+        if (feedback) feedback.innerHTML = `<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> ${msg}</span>`;
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  }
+
+  function clearUserLocation() {
+    const latInput = document.getElementById('userLatInput');
+    const lngInput = document.getElementById('userLngInput');
+    const form = document.getElementById('searchFilterForm');
+    if (latInput) latInput.value = '';
+    if (lngInput) lngInput.value = '';
+    form.submit();
+  }
+
+  function showOnMap(lat, lng, pharmacyName, medicineName) {
+    toggleView('map');
+    if (mapInstance) {
+      mapInstance.setView([lat, lng], 15);
+      L.popup()
+        .setLatLng([lat, lng])
+        .setContent(`<strong>${pharmacyName}</strong><br><span>${medicineName}</span>`)
+        .openOn(mapInstance);
+    }
+  }
+</script>
+    }
+  }
+</script>
+{% endblock %}
