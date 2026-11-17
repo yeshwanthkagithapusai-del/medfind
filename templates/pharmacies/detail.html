@@ -1,25 +1,38 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ pharmacy.pharmacy_name }} - MediFind Store Details{% endblock %}
+{% block title %}
+  {% if pharmacy.provider_type == 'HOSPITAL' %}
+    {{ pharmacy.pharmacy_name }} - MediFind Hospital & Medical Center
+  {% else %}
+    {{ pharmacy.pharmacy_name }} - MediFind Pharmacy Details
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="row g-4">
 
-  <!-- Left: Pharmacy Details Card -->
+  <!-- Left: Healthcare Facility Details Card -->
   <div class="col-lg-4">
     <div class="med-card p-4">
       <div class="d-flex align-items-center justify-content-between mb-3">
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
-          Reg: {{ pharmacy.registration_number }}
-        </span>
-        {% if pharmacy.is_approved %}
-          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-            <i class="bi bi-patch-check-fill me-1"></i> Verified Partner
+        {% if pharmacy.provider_type == 'HOSPITAL' %}
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+            <i class="bi bi-hospital me-1"></i> Hospital &amp; Medical Center
           </span>
         {% else %}
-          <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">
-            Pending Approval
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+            <i class="bi bi-shop me-1"></i> Pharmacy
+          </span>
+        {% endif %}
+
+        {% if pharmacy.is_approved %}
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+            <i class="bi bi-patch-check-fill me-1"></i> Verified Facility
+          </span>
+        {% else %}
+          <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">
+            <i class="bi bi-clock-history me-1"></i> Directory Listing
           </span>
         {% endif %}
       </div>
@@ -29,104 +42,193 @@
       <p class="text-muted small mb-3">
         <i class="bi bi-geo-alt-fill text-danger me-1"></i>
         {{ pharmacy.address }}<br>
-        {{ pharmacy.city }}, {{ pharmacy.state }} - {{ pharmacy.pincode }}
+        <strong>{{ pharmacy.city }}</strong>{% if pharmacy.district and pharmacy.district != pharmacy.city %}, {{ pharmacy.district }}{% endif %}, {{ pharmacy.state }} - {{ pharmacy.pincode }}
       </p>
 
+      {% if pharmacy.phone_number %}
+        <div class="border-top pt-3 mb-3">
+          <label class="small text-muted fw-bold">Primary / Emergency Contact</label>
+          <p class="fs-5 fw-bold text-success mb-1">
+            <i class="bi bi-telephone me-1"></i> {{ pharmacy.phone_number }}
+          </p>
+          <a href="tel:{{ pharmacy.phone_number }}" class="btn btn-outline-success btn-sm w-100 mt-1">
+            <i class="bi bi-telephone-outbound me-1"></i> Call Facility Now
+          </a>
+        </div>
+      {% endif %}
+
       <div class="border-top pt-3 mb-3">
-        <label class="small text-muted fw-bold">Primary Contact</label>
-        <p class="fs-5 fw-bold text-success mb-1">
-          <i class="bi bi-telephone me-1"></i> {{ pharmacy.phone_number }}
+        <label class="small text-muted fw-bold">Registry &amp; Source Identification</label>
+        <p class="small text-muted mb-1">
+          <strong>Registration / ID:</strong> {{ pharmacy.registration_number }}
         </p>
-        <a href="tel:{{ pharmacy.phone_number }}" class="btn btn-outline-success btn-sm w-100 mt-1">
-          Call Pharmacy Now
-        </a>
+        <p class="small text-muted mb-0">
+          <strong>Data Source:</strong> {{ pharmacy.get_source_name_display }}
+        </p>
       </div>
 
       {% if pharmacy.latitude and pharmacy.longitude %}
         <div class="border-top pt-3 mb-3">
-          <label class="small text-muted fw-bold">Geographic Coordinates</label>
-          <p class="small text-muted mb-0">Lat: {{ pharmacy.latitude }}, Lng: {{ pharmacy.longitude }}</p>
+          <label class="small text-muted fw-bold">Geographic Coordinates (WGS84)</label>
+          <p class="small text-muted mb-2">Lat: {{ pharmacy.latitude }}, Lng: {{ pharmacy.longitude }}</p>
+          <div class="d-flex gap-2">
+            <a href="{{ pharmacy.directions_url_google }}" target="_blank" rel="noopener noreferrer" 
+               class="btn btn-sm btn-dark flex-fill" title="Open navigation directions in Google Maps">
+              <i class="bi bi-google me-1"></i> Google Directions
+            </a>
+            <a href="{{ pharmacy.directions_url_osm }}" target="_blank" rel="noopener noreferrer" 
+               class="btn btn-sm btn-outline-secondary flex-fill" title="Open routing in OpenStreetMap">
+              <i class="bi bi-compass me-1"></i> OSM Route
+            </a>
+          </div>
+          <small class="text-muted d-block mt-1" style="font-size: 0.7rem; line-height: 1.3;">
+            <i class="bi bi-info-circle me-1"></i>External turn-by-turn navigation provided by external mapping services.
+          </small>
         </div>
       {% endif %}
 
       <div class="border-top pt-3">
-        <a href="{% url 'search_medicines' %}" class="btn btn-outline-secondary btn-sm w-100">
-          &larr; Back to Search
+        <a href="{% url 'pharmacy_discovery' %}" class="btn btn-outline-secondary btn-sm w-100">
+          &larr; Back to Healthcare Discovery
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Right: Current Inventory Stock & Map -->
+  <!-- Right: Facility Content (Inventory for Pharmacies / Hospital Overview for Hospitals) -->
   <div class="col-lg-8">
-    <div class="med-card p-4 mb-4">
-      <h4 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-boxes text-primary me-2"></i>Reported Medicine Inventory</span>
-        <span class="badge bg-light text-dark fs-6">{{ inventory_items.count }} Item{{ inventory_items.count|pluralize }}</span>
-      </h4>
 
-      {% if inventory_items %}
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Medicine Formulation</th>
-                <th>Category</th>
-                <th>Reported Stock</th>
-                <th>Status</th>
-                <th class="text-end">Inquiry</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in inventory_items %}
+    {% if pharmacy.provider_type == 'HOSPITAL' %}
+      <!-- Hospital Overview Card -->
+      <div class="med-card p-4 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+          <h4 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-hospital text-danger me-2"></i>Hospital Institutional Overview
+          </h4>
+          <span class="badge bg-light text-dark fs-6">{{ pharmacy.city }}, {{ pharmacy.state }}</span>
+        </div>
+
+        <!-- Emergency Care Notice -->
+        <div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
+          <i class="bi bi-exclamation-octagon-fill fs-5 mt-1 text-danger"></i>
+          <div>
+            <h6 class="fw-bold mb-1">Emergency &amp; Critical Care Guidance</h6>
+            <p class="small mb-0">
+              For acute medical trauma, severe symptoms, or life-threatening emergencies, immediately call national emergency dispatch services (<strong>112</strong> or <strong>108</strong>) or visit this facility's 24x7 emergency trauma center.
+            </p>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3">
+              <span class="text-muted small d-block">Facility Classification</span>
+              <strong class="text-dark">Government / Public Tertiary Center</strong>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3">
+              <span class="text-muted small d-block">Administrative Jurisdiction</span>
+              <strong class="text-dark">{{ pharmacy.district|default:pharmacy.city }}, {{ pharmacy.state }}</strong>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3">
+              <span class="text-muted small d-block">Verification Status</span>
+              {% if pharmacy.is_approved %}
+                <strong class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Verified Facility</strong>
+              {% else %}
+                <strong class="text-warning-emphasis"><i class="bi bi-clock-history me-1"></i>Official Government Directory Record</strong>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3">
+              <span class="text-muted small d-block">Postal Area Code</span>
+              <strong class="text-dark">{{ pharmacy.pincode }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+      <!-- Pharmacy Medicine Inventory Card -->
+      <div class="med-card p-4 mb-4">
+        <h4 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-boxes text-primary me-2"></i>Reported Medicine Inventory</span>
+          <span class="badge bg-light text-dark fs-6">{{ inventory_items.count }} Item{{ inventory_items.count|pluralize }}</span>
+        </h4>
+
+        {% if inventory_items %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
                 <tr>
-                  <td>
-                    <strong>
-                      <a href="{% url 'medicine_detail' item.medicine.id %}" class="text-dark text-decoration-none">
-                        {{ item.medicine.medicine_name }}
-                      </a>
-                    </strong><br>
-                    <span class="small text-muted">{{ item.medicine.generic_name }} ({{ item.medicine.strength }})</span>
-                  </td>
-                  <td><span class="badge bg-secondary-subtle text-secondary small">{{ item.medicine.category }}</span></td>
-                  <td>
-                    <strong>{{ item.quantity }}</strong> units
-                    <div class="small text-muted" style="font-size: 0.75rem;">
-                      {{ item.updated_at|timesince }} ago
-                    </div>
-                  </td>
-                  <td>
-                    {% if item.availability_status == 'IN_STOCK' %}
-                      <span class="badge-in-stock">In Stock</span>
-                    {% elif item.availability_status == 'LOW_STOCK' %}
-                      <span class="badge-low-stock">Low Stock</span>
-                    {% else %}
-                      <span class="badge-out-stock">Out of Stock</span>
-                    {% endif %}
-                  </td>
-                  <td class="text-end">
-                    {% if user.is_authenticated and user.is_customer %}
-                      <a href="{% url 'create_request' pharmacy.id item.medicine.id %}" class="btn btn-sm btn-med-primary">
-                        Request
-                      </a>
-                    {% endif %}
-                  </td>
+                  <th>Medicine Formulation</th>
+                  <th>Category</th>
+                  <th>Reported Stock</th>
+                  <th>Status</th>
+                  <th class="text-end">Inquiry</th>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="text-center py-4 text-muted">
-          <p>No inventory records are currently published by this pharmacy.</p>
-        </div>
-      {% endif %}
-    </div>
+              </thead>
+              <tbody>
+                {% for item in inventory_items %}
+                  <tr>
+                    <td>
+                      <strong>
+                        <a href="{% url 'medicine_detail' item.medicine.id %}" class="text-dark text-decoration-none">
+                          {{ item.medicine.medicine_name }}
+                        </a>
+                      </strong><br>
+                      <span class="small text-muted">{{ item.medicine.generic_name }} ({{ item.medicine.strength }})</span>
+                    </td>
+                    <td><span class="badge bg-secondary-subtle text-secondary small">{{ item.medicine.category }}</span></td>
+                    <td>
+                      <strong>{{ item.quantity }}</strong> units
+                      <div class="small text-muted" style="font-size: 0.75rem;">
+                        {{ item.updated_at|timesince }} ago
+                      </div>
+                    </td>
+                    <td>
+                      {% if item.availability_status == 'IN_STOCK' %}
+                        <span class="badge-in-stock">In Stock</span>
+                      {% elif item.availability_status == 'LOW_STOCK' %}
+                        <span class="badge-low-stock">Low Stock</span>
+                      {% else %}
+                        <span class="badge-out-stock">Out of Stock</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      {% if user.is_authenticated and user.is_customer %}
+                        <a href="{% url 'create_request' pharmacy.id item.medicine.id %}" class="btn btn-sm btn-med-primary">
+                          Request
+                        </a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <p class="mb-0">No real-time inventory records are currently published for this store.</p>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
 
+    <!-- Location Map Card -->
     {% if map_pin %}
       <div class="med-card p-3">
-        <h6 class="fw-bold text-muted mb-2"><i class="bi bi-map me-1 text-primary"></i> Pharmacy Location</h6>
-        <div id="map" style="height: 280px;"></div>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="fw-bold text-muted mb-0">
+            <i class="bi bi-map me-1 text-primary"></i> 
+            {% if pharmacy.provider_type == 'HOSPITAL' %}Hospital Location on Map{% else %}Pharmacy Location on Map{% endif %}
+          </h6>
+          <span class="badge bg-light text-muted border" style="font-size: 0.72rem;">WGS84 Coordinates</span>
+        </div>
+        <div id="map" style="height: 280px; border-radius: 8px;"></div>
       </div>
     {% endif %}
   </div>
@@ -144,13 +246,35 @@
 
     const map = L.map('map').setView([p.lat, p.lng], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    L.marker([p.lat, p.lng])
-      .addTo(map)
-      .bindPopup(`<strong>${p.name}</strong><br>${p.address}`)
-      .openPopup();
+    const isHospital = p.provider_type === 'HOSPITAL';
+    const markerColor = isHospital ? '#DC2626' : '#16A34A';
+    
+    const marker = L.circleMarker([p.lat, p.lng], {
+      radius: 10,
+      fillColor: markerColor,
+      color: '#FFFFFF',
+      weight: 3,
+      opacity: 1,
+      fillOpacity: 0.95
+    }).addTo(map);
+
+    const popupHtml = `
+      <div style="font-family: 'Plus Jakarta Sans', sans-serif; min-width: 190px;">
+        <span style="font-size: 0.68rem; font-weight: 700; color: ${isHospital ? '#DC2626' : '#16A34A'};">
+          ${isHospital ? 'HOSPITAL' : 'PHARMACY'}
+        </span>
+        <strong style="display: block; font-size: 0.9rem; color: #102A43; margin-top: 2px;">${p.name}</strong>
+        <p style="font-size: 0.78rem; color: #64748B; margin: 3px 0 6px 0; line-height: 1.3;">${p.address}</p>
+        <div style="display: flex; gap: 4px; border-top: 1px solid #E2E8F0; padding-top: 6px;">
+          <a href="${p.directions_url_google}" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; padding: 2px 6px; background: #1E293B; color: #FFFFFF; text-decoration: none; border-radius: 4px; font-weight: 600;">Google Nav</a>
+          <a href="${p.directions_url_osm}" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; padding: 2px 6px; background: #F1F5F9; color: #334155; text-decoration: none; border: 1px solid #CBD5E1; border-radius: 4px;">OSM</a>
+        </div>
+      </div>
+    `;
+    marker.bindPopup(popupHtml).openPopup();
   });
 </script>
 {% endif %}

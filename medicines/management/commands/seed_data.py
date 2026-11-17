@@ -53,13 +53,13 @@ class Command(BaseCommand):
                 customers.append(c_user)
             self.stdout.write(self.style.SUCCESS(f"[OK] {len(customers)} Customer accounts created (password: password123)"))
 
-            # 3. Pharmacy Owners & Pharmacies (5 Approved Demo Pharmacies + 1 Pending)
+            # 3. Pharmacy Owners & Pharmacies (5 Approved Pharmacies + 1 Pending)
             pharmacies_specs = [
                 {
                     'owner_username': 'apollo_owner',
                     'email': 'apollo@medifind.test',
                     'phone': '+91 9111100001',
-                    'name': '[DEMO] Apollo Healthcare Store',
+                    'name': 'Apollo Healthcare Store',
                     'reg_no': 'DEMO-HYD-AP-101',
                     'address': 'Road No. 12, Banjara Hills',
                     'city': 'Hyderabad',
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                     'owner_username': 'medplus_owner',
                     'email': 'medplus@medifind.test',
                     'phone': '+91 9111100002',
-                    'name': '[DEMO] MedPlus Pharma Hub',
+                    'name': 'MedPlus Pharma Hub',
                     'reg_no': 'DEMO-HYD-MP-102',
                     'address': 'Cyber Towers Junction, Madhapur',
                     'city': 'Hyderabad',
@@ -87,7 +87,7 @@ class Command(BaseCommand):
                     'owner_username': 'wellness_owner',
                     'email': 'wellness@medifind.test',
                     'phone': '+91 9111100003',
-                    'name': '[DEMO] Wellness Forever 24x7',
+                    'name': 'Wellness Forever 24x7',
                     'reg_no': 'DEMO-BLR-WF-103',
                     'address': '100 Feet Road, HAL 2nd Stage, Indiranagar',
                     'city': 'Bengaluru',
@@ -101,7 +101,7 @@ class Command(BaseCommand):
                     'owner_username': 'netmeds_owner',
                     'email': 'netmeds@medifind.test',
                     'phone': '+91 9111100004',
-                    'name': '[DEMO] NetMeds Point Care',
+                    'name': 'NetMeds Point Care',
                     'reg_no': 'DEMO-BLR-NM-104',
                     'address': '80 Feet Main Road, 4th Block, Koramangala',
                     'city': 'Bengaluru',
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                     'owner_username': 'care_owner',
                     'email': 'care@medifind.test',
                     'phone': '+91 9111100005',
-                    'name': '[DEMO] Care & Cure Community Chemist',
+                    'name': 'Care & Cure Community Chemist',
                     'reg_no': 'DEMO-DEL-CC-105',
                     'address': 'Connaught Place, Inner Circle',
                     'city': 'New Delhi',
@@ -129,7 +129,7 @@ class Command(BaseCommand):
                     'owner_username': 'pending_owner',
                     'email': 'pending@medifind.test',
                     'phone': '+91 9111100006',
-                    'name': '[DEMO] Metro Life Pharmacy (Pending Review)',
+                    'name': 'Metro Life Pharmacy',
                     'reg_no': 'DEMO-HYD-ML-106',
                     'address': 'Station Road, Secunderabad',
                     'city': 'Hyderabad',
@@ -356,11 +356,11 @@ class Command(BaseCommand):
             # 7. Sample Notifications
             Notification.objects.create(
                 user=customers[0],
-                message="[DEMO] Apollo Healthcare Store confirmed your request for Dolo 650."
+                message="Apollo Healthcare Store confirmed your request for Dolo 650."
             )
             Notification.objects.create(
                 user=customers[1],
-                message="[DEMO] MedPlus Pharma Hub updated your inquiry status for Insulin Glargine."
+                message="MedPlus Pharma Hub updated your inquiry status for Insulin Glargine."
             )
             Notification.objects.create(
                 user=approved_pharmacies[2].owner,

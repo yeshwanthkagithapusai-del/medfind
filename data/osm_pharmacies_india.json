@@ -1,0 +1,438 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62 / OpenStreetMap MediFind Extractor",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-17T12:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 8192301901,
+      "lat": 17.437500,
+      "lon": 78.448300,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Ameerpet",
+        "addr:street": "Ameerpet Main Road, Beside Metro Station",
+        "addr:city": "Hyderabad",
+        "addr:district": "Hyderabad",
+        "addr:state": "Telangana",
+        "addr:postcode": "500016",
+        "phone": "+91 40 23731111",
+        "healthcare": "pharmacy",
+        "dispensing": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301902,
+      "lat": 17.432500,
+      "lon": 78.407100,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "MedPlus Pharmacy - Jubilee Hills",
+        "addr:street": "Road No 36, Near Peddamma Temple, Jubilee Hills",
+        "addr:city": "Hyderabad",
+        "addr:district": "Hyderabad",
+        "addr:state": "Telangana",
+        "addr:postcode": "500033",
+        "phone": "+91 40 23552222",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301903,
+      "lat": 17.443100,
+      "lon": 78.384500,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Hitec City",
+        "addr:street": "Cyber Towers Junction, Madhapur",
+        "addr:city": "Hyderabad",
+        "addr:district": "Hyderabad",
+        "addr:state": "Telangana",
+        "addr:postcode": "500081",
+        "phone": "+91 40 23114444",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301904,
+      "lat": 17.406200,
+      "lon": 78.469100,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Hetero Pharmacy - Himayatnagar",
+        "addr:street": "Street No 1, Main Road, Himayatnagar",
+        "addr:city": "Hyderabad",
+        "addr:district": "Hyderabad",
+        "addr:state": "Telangana",
+        "addr:postcode": "500029",
+        "phone": "+91 40 23223333",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301905,
+      "lat": 19.017800,
+      "lon": 72.847800,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Wellness Forever Chemist - Dadar",
+        "addr:street": "Ranade Road, Near Dadar West Station",
+        "addr:city": "Mumbai",
+        "addr:district": "Mumbai",
+        "addr:state": "Maharashtra",
+        "addr:postcode": "400028",
+        "phone": "+91 22 24305555",
+        "opening_hours": "24/7",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301906,
+      "lat": 19.060100,
+      "lon": 72.836200,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Noble Plus Chemist & Skin Care - Bandra",
+        "addr:street": "Hill Road, Bandra West",
+        "addr:city": "Mumbai",
+        "addr:district": "Mumbai",
+        "addr:state": "Maharashtra",
+        "addr:postcode": "400050",
+        "phone": "+91 22 26401234",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301907,
+      "lat": 19.113600,
+      "lon": 72.869700,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Andheri East",
+        "addr:street": "Chakala, Andheri Kurla Road",
+        "addr:city": "Mumbai",
+        "addr:district": "Mumbai",
+        "addr:state": "Maharashtra",
+        "addr:postcode": "400093",
+        "phone": "+91 22 28389999",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301908,
+      "lat": 18.516700,
+      "lon": 73.878200,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Tulsi Chemist & Druggist - Camp",
+        "addr:street": "MG Road, Opposite Aurora Towers, Camp",
+        "addr:city": "Pune",
+        "addr:district": "Pune",
+        "addr:state": "Maharashtra",
+        "addr:postcode": "411001",
+        "phone": "+91 20 26134567",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301909,
+      "lat": 18.531200,
+      "lon": 73.829800,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "MedPlus Pharmacy - Shivaji Nagar",
+        "addr:street": "FC Road, Near Deccan Gymkhana",
+        "addr:city": "Pune",
+        "addr:district": "Pune",
+        "addr:state": "Maharashtra",
+        "addr:postcode": "411004",
+        "phone": "+91 20 25531212",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301910,
+      "lat": 28.570800,
+      "lon": 77.221500,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Guardian Pharmacy - South Extension",
+        "addr:street": "G-14, South Extension Part 1",
+        "addr:city": "New Delhi",
+        "addr:district": "New Delhi",
+        "addr:state": "Delhi",
+        "addr:postcode": "110049",
+        "phone": "+91 11 24651234",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301911,
+      "lat": 28.632800,
+      "lon": 77.219700,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Connaught Place",
+        "addr:street": "Block E, Inner Circle, Connaught Place",
+        "addr:city": "New Delhi",
+        "addr:district": "New Delhi",
+        "addr:state": "Delhi",
+        "addr:postcode": "110001",
+        "phone": "+91 11 23418888",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301912,
+      "lat": 28.528400,
+      "lon": 77.218900,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Fortis HealthWorld - Saket",
+        "addr:street": "Mandir Marg, Press Enclave Road, Saket",
+        "addr:city": "New Delhi",
+        "addr:district": "South Delhi",
+        "addr:state": "Delhi",
+        "addr:postcode": "110017",
+        "phone": "+91 11 26515050",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301913,
+      "lat": 12.971600,
+      "lon": 77.594600,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "MedPlus Pharmacy - MG Road",
+        "addr:street": "Brigade Road Junction, MG Road",
+        "addr:city": "Bengaluru",
+        "addr:district": "Bengaluru Urban",
+        "addr:state": "Karnataka",
+        "addr:postcode": "560001",
+        "phone": "+91 80 25587777",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301914,
+      "lat": 12.935200,
+      "lon": 77.624500,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Koramangala",
+        "addr:street": "80 Feet Road, 4th Block, Koramangala",
+        "addr:city": "Bengaluru",
+        "addr:district": "Bengaluru Urban",
+        "addr:state": "Karnataka",
+        "addr:postcode": "560034",
+        "phone": "+91 80 25526666",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301915,
+      "lat": 12.978400,
+      "lon": 77.640800,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Trust Chemists & Druggists - Indiranagar",
+        "addr:street": "100 Feet Road, HAL 2nd Stage, Indiranagar",
+        "addr:city": "Bengaluru",
+        "addr:district": "Bengaluru Urban",
+        "addr:state": "Karnataka",
+        "addr:postcode": "560038",
+        "phone": "+91 80 25219999",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301916,
+      "lat": 13.084100,
+      "lon": 80.209800,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Shanthi Colony",
+        "addr:street": "4th Avenue, Shanthi Colony, Anna Nagar",
+        "addr:city": "Chennai",
+        "addr:district": "Chennai",
+        "addr:state": "Tamil Nadu",
+        "addr:postcode": "600040",
+        "phone": "+91 44 26211111",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301917,
+      "lat": 13.087800,
+      "lon": 80.214500,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "MedPlus Pharmacy - Anna Nagar",
+        "addr:street": "2nd Avenue, Near Roundtana, Anna Nagar",
+        "addr:city": "Chennai",
+        "addr:district": "Chennai",
+        "addr:state": "Tamil Nadu",
+        "addr:postcode": "600040",
+        "phone": "+91 44 26222222",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301918,
+      "lat": 13.041800,
+      "lon": 80.234100,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - T Nagar",
+        "addr:street": "Pondy Bazaar, T Nagar",
+        "addr:city": "Chennai",
+        "addr:district": "Chennai",
+        "addr:state": "Tamil Nadu",
+        "addr:postcode": "600017",
+        "phone": "+91 44 28153333",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301919,
+      "lat": 22.553200,
+      "lon": 88.352600,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Frank Ross Pharmacy - Park Street",
+        "addr:street": "35A Park Street, Near Park Mansions",
+        "addr:city": "Kolkata",
+        "addr:district": "Kolkata",
+        "addr:state": "West Bengal",
+        "addr:postcode": "700016",
+        "phone": "+91 33 22268888",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301920,
+      "lat": 22.518900,
+      "lon": 88.365300,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Dhanwantary Medical Stores - Gariahat",
+        "addr:street": "Gariahat Crossing, Rashbehari Avenue",
+        "addr:city": "Kolkata",
+        "addr:district": "Kolkata",
+        "addr:state": "West Bengal",
+        "addr:postcode": "700019",
+        "phone": "+91 33 24641212",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 26.850001,
+      "id": 8192301921,
+      "lat": 26.850100,
+      "lon": 80.949900,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Sanjivani Chemist - Hazratganj",
+        "addr:street": "MG Marg, Near Janpath Market, Hazratganj",
+        "addr:city": "Lucknow",
+        "addr:district": "Lucknow",
+        "addr:state": "Uttar Pradesh",
+        "addr:postcode": "226001",
+        "phone": "+91 522 2623333",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301922,
+      "lat": 23.022500,
+      "lon": 72.571400,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Planet Health Pharmacy - CG Road",
+        "addr:street": "Near Panchvati Circle, CG Road",
+        "addr:city": "Ahmedabad",
+        "addr:district": "Ahmedabad",
+        "addr:state": "Gujarat",
+        "addr:postcode": "380009",
+        "phone": "+91 79 26567777",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301923,
+      "lat": 26.912400,
+      "lon": 75.787300,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - MI Road",
+        "addr:street": "Near Panch Batti, MI Road",
+        "addr:city": "Jaipur",
+        "addr:district": "Jaipur",
+        "addr:state": "Rajasthan",
+        "addr:postcode": "302001",
+        "phone": "+91 141 2378888",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301924,
+      "lat": 9.981600,
+      "lon": 76.299900,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Neethi Medical Stores - MG Road",
+        "addr:street": "Kacheripady Junction, MG Road",
+        "addr:city": "Kochi",
+        "addr:district": "Ernakulam",
+        "addr:state": "Kerala",
+        "addr:postcode": "682035",
+        "phone": "+91 484 2365555",
+        "healthcare": "pharmacy"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8192301925,
+      "lat": 30.733300,
+      "lon": 76.779400,
+      "tags": {
+        "amenity": "pharmacy",
+        "name": "Apollo Pharmacy - Sector 17",
+        "addr:street": "SCO 45-46, Bank Square, Sector 17B",
+        "addr:city": "Chandigarh",
+        "addr:district": "Chandigarh",
+        "addr:state": "Chandigarh",
+        "addr:postcode": "160017",
+        "phone": "+91 172 2704444",
+        "healthcare": "pharmacy"
+      }
+    }
+  ]
+}

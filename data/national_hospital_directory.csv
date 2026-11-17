@@ -1,0 +1,60 @@
+Hospital_Name,State_Name,District_Name,City,Address,Pincode,Latitude,Longitude,NIN_Code,Contact_Number
+All India Institute of Medical Sciences (AIIMS),Delhi,New Delhi,New Delhi,"Ansari Nagar, Ring Road",110029,28.567200,77.210000,NIN-DEL-110001,011-26588500
+Safdarjung Hospital,Delhi,New Delhi,New Delhi,"Ring Road, Opposite AIIMS",110029,28.570100,77.207800,NIN-DEL-110002,011-26707444
+Dr. Ram Manohar Lohia Hospital,Delhi,Central Delhi,New Delhi,"Baba Kharak Singh Marg, Connaught Place",110001,28.625300,77.202500,NIN-DEL-110003,011-23365525
+Lady Hardinge Medical College & Associated Hospitals,Delhi,Central Delhi,New Delhi,"Shaheed Bhagat Singh Marg",110001,28.633100,77.214800,NIN-DEL-110004,011-23363728
+Lok Nayak Jai Prakash Narayan Hospital (LNJP),Delhi,Central Delhi,New Delhi,"Jawaharlal Nehru Marg, Delhi Gate",110002,28.638500,77.241200,NIN-DEL-110005,011-23236000
+King Edward Memorial (KEM) Hospital,Maharashtra,Mumbai,Mumbai,"Acharya Donde Marg, Parel",400012,19.002800,72.842400,NIN-MAH-270001,022-24107000
+Tata Memorial Hospital,Maharashtra,Mumbai,Mumbai,"Dr. E Borges Road, Parel",400012,19.004200,72.843300,NIN-MAH-270002,022-24177000
+Sir J.J. Group of Hospitals,Maharashtra,Mumbai,Mumbai,"JJ Hospital Compound, Byculla",400008,18.963200,72.834100,NIN-MAH-270003,022-23735555
+Sassoon General Hospital & BJ Medical College,Maharashtra,Pune,Pune,"Near Pune Railway Station, Station Road",411001,18.528400,73.873900,NIN-MAH-270004,020-26128000
+Government Medical College & Hospital Nagpur,Maharashtra,Nagpur,Nagpur,"Medical Square, Ajni Road",440003,21.134700,79.096300,NIN-MAH-270005,0712-2744671
+Nizam's Institute of Medical Sciences (NIMS),Telangana,Hyderabad,Hyderabad,"Punjagutta Road, Erramanzil",500082,17.422700,78.452600,NIN-TEL-360001,040-23489000
+Osmania General Hospital,Telangana,Hyderabad,Hyderabad,"Afzal Gunj, High Court Road",500012,17.375800,78.475600,NIN-TEL-360002,040-24600121
+Gandhi Hospital & Medical College,Telangana,Hyderabad,Secunderabad,"Padmarao Nagar, Musheerabad",500003,17.424300,78.502900,NIN-TEL-360003,040-27505566
+Kakatiya Medical College & MGM Hospital,Telangana,Warangal,Warangal,"Station Road, Sherpura",506007,17.978400,79.601200,NIN-TEL-360004,0870-2446355
+King George Hospital & Andhra Medical College,Andhra Pradesh,Visakhapatnam,Visakhapatnam,"Collector Office Road, Maharanipeta",530002,17.708900,83.305600,NIN-AND-280001,0891-2564891
+Sri Venkateswara Institute of Medical Sciences (SVIMS),Andhra Pradesh,Chittoor,Tirupati,"Alipiri Road",517507,13.636900,79.404200,NIN-AND-280002,0877-2287777
+Guntur Medical College & Government General Hospital,Andhra Pradesh,Guntur,Guntur,"Kanna Vari Thota",522004,16.299500,80.441100,NIN-AND-280003,0863-2234625
+Victoria Hospital (Bangalore Medical College),Karnataka,Bengaluru Urban,Bengaluru,"Fort Road, Kalasipalyam",560002,12.964400,77.575600,NIN-KAR-290001,080-26701150
+Bowring and Lady Curzon Hospital,Karnataka,Bengaluru Urban,Bengaluru,"Lady Curzon Road, Shivajinagar",560001,12.983900,77.604100,NIN-KAR-290002,080-25591325
+Karnataka Institute of Medical Sciences (KIMS),Karnataka,Dharwad,Hubballi,"PB Road, Vidyanagar",580022,15.364700,75.124000,NIN-KAR-290003,0836-2272044
+Rajiv Gandhi Government General Hospital,Tamil Nadu,Chennai,Chennai,"EVR Periyar Salai, Park Town",600003,13.081000,80.277800,NIN-TAM-330001,044-25305000
+Stanley Medical College Hospital,Tamil Nadu,Chennai,Chennai,"No. 1 Old Jail Road, Royapuram",600001,13.107200,80.287200,NIN-TAM-330002,044-25281351
+Madurai Medical College & Government Rajaji Hospital,Tamil Nadu,Madurai,Madurai,"Panagal Road, Shenoy Nagar",625020,9.925200,78.136700,NIN-TAM-330003,0452-2532535
+Medical College and Hospital Kolkata,West Bengal,Kolkata,Kolkata,"88 College Street",700073,22.573500,88.363900,NIN-WES-190001,033-22551621
+IPGMER & SSKM Hospital,West Bengal,Kolkata,Kolkata,"244 AJC Bose Road, Bhowanipore",700020,22.539200,88.344400,NIN-WES-190002,033-22231589
+North Bengal Medical College & Hospital,West Bengal,Darjeeling,Siliguri,"Sushrutanagar, Thiknikata",734012,26.702500,88.375600,NIN-WES-190003,0353-2585478
+Sanjay Gandhi Postgraduate Institute of Medical Sciences (SGPGI),Uttar Pradesh,Lucknow,Lucknow,"Raebareli Road",226014,26.744100,80.938900,NIN-UTT-090001,0522-2668004
+King George's Medical University (KGMU),Uttar Pradesh,Lucknow,Lucknow,"Shah Mina Road, Chowk",226003,26.868700,80.916800,NIN-UTT-090002,0522-2257450
+Sir Sunderlal Hospital (Institute of Medical Sciences BHU),Uttar Pradesh,Varanasi,Varanasi,"BHU Main Campus",221005,25.275800,82.999400,NIN-UTT-090003,0542-2307500
+Sarojini Naidu Medical College & Hospital,Uttar Pradesh,Agra,Agra,"Moti Katra Road",282002,27.185200,78.006400,NIN-UTT-090004,0562-2260353
+Ahmedabad Civil Hospital & BJ Medical College,Gujarat,Ahmedabad,Ahmedabad,"Asarwa",380016,23.052600,72.603300,NIN-GUJ-240001,079-22680074
+Government Medical College & New Civil Hospital,Gujarat,Surat,Surat,"Majura Gate",395001,21.176400,72.822200,NIN-GUJ-240002,0261-2244456
+Sir Sayajirao General (SSG) Hospital,Gujarat,Vadodara,Vadodara,"Jail Road, Indira Avenue",390001,22.311200,73.189500,NIN-GUJ-240003,0265-2424848
+Government Medical College Thiruvananthapuram,Kerala,Thiruvananthapuram,Thiruvananthapuram,"Medical College PO, Chalakkuzhi",695011,8.522200,76.924800,NIN-KER-320001,0471-2528386
+Government Medical College Kozhikode,Kerala,Kozhikode,Kozhikode,"Medical College Junction, Chevayur",673008,11.272500,75.836700,NIN-KER-320002,0495-2350216
+Sawai Man Singh (SMS) Hospital,Rajasthan,Jaipur,Jaipur,"JLN Marg, Ashok Nagar",302004,26.896700,75.816400,NIN-RAJ-080001,0141-2560291
+All India Institute of Medical Sciences (AIIMS) Jodhpur,Rajasthan,Jodhpur,Jodhpur,"Basni Industrial Area, Phase-2",342005,26.237200,73.008900,NIN-RAJ-080002,0291-2740741
+Post Graduate Institute of Medical Education & Research (PGIMER),Chandigarh,Chandigarh,Chandigarh,"Sector 12, Madhya Marg",160012,30.763400,76.776600,NIN-CHD-160001,0172-2746018
+Government Medical College & Hospital (GMCH 32),Chandigarh,Chandigarh,Chandigarh,"Chandi Path, Sector 32B",160047,30.707800,76.777900,NIN-CHD-160002,0172-2601023
+Government Medical College Amritsar,Punjab,Amritsar,Amritsar,"Circular Road, Majitha Road",143001,31.654200,74.881200,NIN-PUN-030001,0183-2573218
+Pt. B.D. Sharma PGIMS Rohtak,Haryana,Rohtak,Rohtak,"Medical Road",124001,28.885600,76.618900,NIN-HAR-060001,01262-281307
+All India Institute of Medical Sciences (AIIMS) Patna,Bihar,Patna,Patna,"Phulwarisharif",801507,25.560100,85.044200,NIN-BIH-100001,0612-2451006
+Patna Medical College Hospital (PMCH),Bihar,Patna,Patna,"Ashok Rajpath, Muradpur",800004,25.620800,85.161100,NIN-BIH-100002,0612-2300080
+All India Institute of Medical Sciences (AIIMS) Bhopal,Madhya Pradesh,Bhopal,Bhopal,"Saket Nagar",462020,23.208100,77.458900,NIN-MAD-230001,0755-2672317
+Maharaja Yeshwantrao Hospital (MY Hospital),Madhya Pradesh,Indore,Indore,"MY Hospital Road, Snehlataganj",452001,22.719600,75.867800,NIN-MAD-230002,0731-2527383
+All India Institute of Medical Sciences (AIIMS) Bhubaneswar,Odisha,Khurda,Bhubaneswar,"Sijua, Patrapada",751019,20.231200,85.772500,NIN-ODI-210001,0674-2476789
+SCB Medical College & Hospital,Odisha,Cuttack,Cuttack,"Mangalabag",753007,20.470800,85.891200,NIN-ODI-210002,0671-2414080
+Gauhati Medical College & Hospital,Assam,Kamrup Metropolitan,Guwahati,"Narakasur Hilltop, Bhangagarh",781032,26.155800,91.774400,NIN-ASS-180001,0361-2529457
+Assam Medical College & Hospital,Assam,Dibrugarh,Dibrugarh,"Barbari",786005,27.466700,94.933300,NIN-ASS-180002,0373-2300080
+Goa Medical College and Hospital,Goa,North Goa,Bambolim,"NH 66, Bambolim",403202,15.461900,73.856900,NIN-GOA-300001,0832-2458700
+All India Institute of Medical Sciences (AIIMS) Rishikesh,Uttarakhand,Dehradun,Rishikesh,"Virbhadra Road",249203,30.075800,78.288600,NIN-UTK-050001,0135-2462929
+Rajendra Institute of Medical Sciences (RIMS),Jharkhand,Ranchi,Ranchi,"Bariatu",834009,23.385300,85.344200,NIN-JHA-200001,0651-2541533
+Indira Gandhi Medical College (IGMC),Himachal Pradesh,Shimla,Shimla,"Ridge View, Lakkar Bazaar",171001,31.108900,77.181200,NIN-HIM-020001,0177-2804251
+Sher-i-Kashmir Institute of Medical Sciences (SKIMS),Jammu and Kashmir,Srinagar,Srinagar,"Soura",190011,34.135600,74.802800,NIN-JAM-010001,0194-2401013
+Government Medical College & Hospital Jammu,Jammu and Kashmir,Jammu,Jammu,"Bakshi Nagar",180001,32.738900,74.851200,NIN-JAM-010002,0191-2584290
+Jawaharlal Institute of Postgraduate Medical Education & Research (JIPMER),Puducherry,Puducherry,Puducherry,"Dhanvantari Nagar, Gorimedu",605006,11.954700,79.799400,NIN-PUD-340001,0413-2296000
+North Eastern Indira Gandhi Regional Institute of Health & Medical Sciences (NEIGRIHMS),Meghalaya,East Khasi Hills,Shillong,"Mawdiangdiang",793018,25.612800,91.956700,NIN-MEG-170001,0364-2538011
+Regional Institute of Medical Sciences (RIMS) Imphal,Manipur,Imphal West,Imphal,"Lamphelpat",795004,24.816700,93.916700,NIN-MAN-140001,0385-2414629
+Agartala Government Medical College & GBP Hospital,Tripura,West Tripura,Agartala,"Kunjaban",799006,23.856100,91.285800,NIN-TRI-160001,0381-2356701

@@ -1,0 +1,76 @@
+{
+  "registry": "ABDM Health Facility Registry (HFR)",
+  "extracted_at": "2026-11-17T12:00:00Z",
+  "facilities": [
+    {
+      "hfrId": "IN0710000001",
+      "facilityName": "ABDM AIIMS Digital Health Center",
+      "facilityType": "HOSPITAL",
+      "systemOfMedicine": "Allopathy",
+      "address": "Ansari Nagar East, Digital Health Wing",
+      "city": "New Delhi",
+      "district": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110029",
+      "latitude": 28.568500,
+      "longitude": 77.211500,
+      "contactNumber": "011-26594800"
+    },
+    {
+      "hfrId": "IN3610000002",
+      "facilityName": "ABDM Telangana eHealth Hub - NIMS",
+      "facilityType": "HOSPITAL",
+      "systemOfMedicine": "Allopathy",
+      "address": "Punjagutta Main Road, Telemedicine Block",
+      "city": "Hyderabad",
+      "district": "Hyderabad",
+      "state": "Telangana",
+      "pincode": "500082",
+      "latitude": 17.423900,
+      "longitude": 78.453900,
+      "contactNumber": "040-23489111"
+    },
+    {
+      "hfrId": "IN2710000003",
+      "facilityName": "ABDM Maharashtra Tele-Oncology Center - Tata Memorial",
+      "facilityType": "HOSPITAL",
+      "systemOfMedicine": "Allopathy",
+      "address": "Dr. E Borges Road, Advanced Care Wing, Parel",
+      "city": "Mumbai",
+      "district": "Mumbai",
+      "state": "Maharashtra",
+      "pincode": "400012",
+      "latitude": 19.005100,
+      "longitude": 72.844500,
+      "contactNumber": "022-24177100"
+    },
+    {
+      "hfrId": "IN2910000004",
+      "facilityName": "ABDM Urban Health Center - Victoria",
+      "facilityType": "HOSPITAL",
+      "systemOfMedicine": "Allopathy",
+      "address": "Kalasipalyam Medical Enclave, Fort Road",
+      "city": "Bengaluru",
+      "district": "Bengaluru Urban",
+      "state": "Karnataka",
+      "pincode": "560002",
+      "latitude": 12.965500,
+      "longitude": 77.576800,
+      "contactNumber": "080-26701199"
+    },
+    {
+      "hfrId": "IN3310000005",
+      "facilityName": "ABDM Regional Tele-Health Unit - RGGGH",
+      "facilityType": "HOSPITAL",
+      "systemOfMedicine": "Allopathy",
+      "address": "EVR Periyar Salai, Tele-Medicine Directorate",
+      "city": "Chennai",
+      "district": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600003",
+      "latitude": 13.082200,
+      "longitude": 70.278900,
+      "contactNumber": "044-25305111"
+    }
+  ]
+}

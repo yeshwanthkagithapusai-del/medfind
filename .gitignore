@@ -12,6 +12,8 @@ staticfiles/
 env/
 *.zip
 *.log
+backups/
+*.bak
 scratch/
 .DS_Store
 Thumbs.db

@@ -1,27 +1,190 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Nearby Verified Pharmacies & Drugstores - MediFind{% endblock %}
+{% block title %}Healthcare Discovery: Hospitals & Pharmacies Across India - MediFind{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+  .provider-card {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border: 1px solid rgba(16, 42, 67, 0.08);
+  }
+  .provider-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(16, 42, 67, 0.1);
+  }
+  .provider-card.card-hospital {
+    border-top: 4px solid #DC2626;
+  }
+  .provider-card.card-pharmacy {
+    border-top: 4px solid #16A34A;
+  }
+  .type-pill-btn {
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .map-container-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    position: relative;
+    height: 520px;
+  }
+  @media (max-width: 768px) {
+    .map-container-wrapper {
+      height: 400px;
+    }
+  }
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(16, 42, 67, 0.18);
+    padding: 2px;
+  }
+  .leaflet-popup-content {
+    margin: 12px 14px;
+    line-height: 1.4;
+  }
+
+  /* Custom Distinct Map Marker Pin Styles */
+  .medifind-map-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 2px solid #FFFFFF;
+    transition: transform 0.15s ease;
+  }
+  .medifind-map-pin:hover {
+    transform: rotate(-45deg) scale(1.15);
+  }
+  .medifind-map-pin i {
+    transform: rotate(45deg);
+    font-size: 15px;
+    color: #FFFFFF;
+  }
+  .pin-hospital {
+    background: #DC2626;
+  }
+  .pin-pharmacy {
+    background: #16A34A;
+  }
+  .user-location-pulse {
+    width: 22px;
+    height: 22px;
+    background: #0EA5A4;
+    border-radius: 50%;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(14, 165, 164, 0.4), 0 2px 8px rgba(0,0,0,0.25);
+    animation: pulse-ring 2s infinite;
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 2px rgba(14, 165, 164, 0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(14, 165, 164, 0); }
+    100% { box-shadow: 0 0 0 2px rgba(14, 165, 164, 0); }
+  }
+
+  /* Map Floating Legend */
+  .map-floating-legend {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    font-size: 0.76rem;
+    max-width: 320px;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row g-4">
 
-  <!-- Left Sidebar: Location & Proximity Filters -->
+  <!-- Left Sidebar: Location, Hierarchy & Proximity Filters -->
   <div class="col-lg-3">
     <div class="med-card p-4 sticky-top" style="top: 80px; z-index: 10;">
       <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between text-dark">
-        <span><i class="bi bi-geo-alt-fill text-danger me-2"></i>Find Pharmacies</span>
-        <a href="{% url 'pharmacy_discovery' %}" class="small text-muted text-decoration-none">Reset All</a>
+        <span><i class="bi bi-sliders text-primary me-2"></i>Discovery Filters</span>
+        <a href="{% url 'pharmacy_discovery' %}" class="small text-muted text-decoration-none" title="Clear all search filters">Reset All</a>
       </h5>
 
-      <form method="GET" action="{% url 'pharmacy_discovery' %}" id="pharmacySearchForm">
+      <form method="GET" action="{% url 'pharmacy_discovery' %}" id="providerSearchForm">
+        
         <!-- Keyword Search -->
         <div class="mb-3">
-          <label class="form-label small fw-bold text-muted">Pharmacy Name or Street</label>
+          <label class="form-label small fw-bold text-muted">Keyword or Facility Name</label>
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-            <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="e.g. Apollo, MedPlus, Jubilee...">
+            <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="e.g. AIIMS, Apollo, Max...">
           </div>
+        </div>
+
+        <!-- Facility Category Filter (Hospitals vs Pharmacies) -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Facility Category</label>
+          <select name="type" class="form-select" id="providerTypeSelect">
+            <option value="ALL" {% if provider_type == 'ALL' or not provider_type %}selected{% endif %}>All Facilities (Hospitals &amp; Pharmacies)</option>
+            <option value="HOSPITAL" {% if provider_type == 'HOSPITAL' %}selected{% endif %}>Hospitals &amp; Medical Centers</option>
+            <option value="PHARMACY" {% if provider_type == 'PHARMACY' %}selected{% endif %}>Pharmacies &amp; Chemists</option>
+          </select>
+        </div>
+
+        <!-- Verification Status Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Verification Status</label>
+          <select name="verification" class="form-select">
+            <option value="approved" {% if verification == 'approved' %}selected{% endif %}>Verified Partners Only</option>
+            <option value="all" {% if verification == 'all' %}selected{% endif %}>All Providers (Include Directory)</option>
+            <option value="pending" {% if verification == 'pending' %}selected{% endif %}>Pending Verification Only</option>
+          </select>
+        </div>
+
+        <!-- Medicine Stock Availability Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Medicine Availability (Stock)</label>
+          <select name="availability" class="form-select">
+            <option value="all" {% if availability == 'all' or not availability %}selected{% endif %}>All Facilities (Any Status)</option>
+            <option value="in_stock" {% if availability == 'in_stock' %}selected{% endif %}>Pharmacies with Reported Stock Only</option>
+          </select>
+          <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+            <i class="bi bi-shield-check text-success me-1"></i>Stock filter matches only active MediFind inventory records.
+          </small>
+        </div>
+
+        <!-- State Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">State / Union Territory</label>
+          <select name="state" class="form-select">
+            <option value="">All States / UTs</option>
+            {% for s in states %}
+              <option value="{{ s }}" {% if state == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- District Filter -->
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">District</label>
+          <select name="district" class="form-select">
+            <option value="">All Districts</option>
+            {% for d in districts %}
+              <option value="{{ d }}" {% if district == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
         </div>
 
         <!-- City Filter -->
@@ -38,20 +201,22 @@
         <!-- Pincode Filter -->
         <div class="mb-3">
           <label class="form-label small fw-bold text-muted">Postal Code / Pincode</label>
-          <input type="text" name="pincode" value="{{ pincode }}" class="form-control" placeholder="e.g. 500033" maxlength="10">
+          <input type="text" name="pincode" value="{{ pincode }}" class="form-control" placeholder="e.g. 500082, 110029" maxlength="10">
         </div>
 
         <!-- Distance Radius Filter -->
         <div class="mb-3">
-          <label class="form-label small fw-bold text-muted">Proximity Radius</label>
+          <label class="form-label small fw-bold text-muted">Proximity Search Radius</label>
           <select name="radius" class="form-select" id="radiusSelect">
             <option value="" {% if not radius %}selected{% endif %}>Any Distance</option>
             <option value="5" {% if radius == '5' %}selected{% endif %}>Within 5 km</option>
             <option value="10" {% if radius == '10' %}selected{% endif %}>Within 10 km</option>
+            <option value="15" {% if radius == '15' %}selected{% endif %}>Within 15 km</option>
             <option value="25" {% if radius == '25' %}selected{% endif %}>Within 25 km</option>
             <option value="50" {% if radius == '50' %}selected{% endif %}>Within 50 km</option>
+            <option value="100" {% if radius == '100' %}selected{% endif %}>Within 100 km</option>
           </select>
-          <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Radius requires active location coordinates.</small>
+          <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Radius calculation requires GPS location.</small>
         </div>
 
         <!-- Sort By -->
@@ -59,12 +224,12 @@
           <label class="form-label small fw-bold text-muted">Sort By</label>
           <select name="sort" class="form-select">
             <option value="distance" {% if sort_by == 'distance' or not sort_by %}selected{% endif %}>Nearest Distance (Haversine)</option>
-            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Pharmacy Name (A-Z)</option>
-            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Recently Registered</option>
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Facility Name (A-Z)</option>
+            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Recently Added</option>
           </select>
         </div>
 
-        <!-- Hidden coordinates -->
+        <!-- Hidden Coordinates -->
         <input type="hidden" name="lat" id="userLatInput" value="{{ user_lat }}">
         <input type="hidden" name="lng" id="userLngInput" value="{{ user_lng }}">
 
@@ -84,36 +249,50 @@
         </div>
 
         <button type="submit" class="btn btn-med-primary w-100 shadow-sm">
-          <i class="bi bi-arrow-clockwise me-1"></i> Apply Filters
+          <i class="bi bi-arrow-clockwise me-1"></i> Apply Discovery Filters
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Right: Pharmacy Listings & Map -->
+  <!-- Right: Provider Listings & Interactive Map -->
   <div class="col-lg-9">
 
-    <!-- Header & Result Counts -->
+    <!-- Header & Results Count -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
       <div>
         <h4 class="fw-bold mb-1 text-dark">
           {% if search_query %}
-            Pharmacies matching <span class="text-primary">"{{ search_query }}"</span>
+            Facilities matching <span class="text-primary">"{{ search_query }}"</span>
           {% elif city %}
-            Verified Pharmacies in <span class="text-primary">{{ city }}</span>
+            Healthcare Providers in <span class="text-primary">{{ city }}</span>
+          {% elif state %}
+            Healthcare Providers in <span class="text-primary">{{ state }}</span>
+          {% elif provider_type == 'HOSPITAL' %}
+            Hospitals &amp; Medical Centers Across India
+          {% elif provider_type == 'PHARMACY' %}
+            Pharmacies &amp; Drugstores Across India
           {% else %}
-            All Verified Partner Pharmacies
+            All Healthcare Facilities &amp; Pharmacies
           {% endif %}
         </h4>
         <p class="text-muted small mb-0">
-          Showing <strong>{{ total_results }}</strong> verified pharmacy facility{{ total_results|pluralize }} licensed for distribution.
+          Showing <strong>{{ total_results }}</strong> healthcare provider{{ total_results|pluralize }}
+          {% if verification == 'approved' %}
+            <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-patch-check-fill me-1"></i>Verified Only</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary ms-1"><i class="bi bi-globe me-1"></i>All Directory Records</span>
+          {% endif %}
+          {% if availability == 'in_stock' %}
+            <span class="badge bg-info-subtle text-info ms-1"><i class="bi bi-boxes me-1"></i>In-Stock Only</span>
+          {% endif %}
         </p>
       </div>
 
-      <!-- View Switcher -->
-      <div class="mt-2 mt-md-0 btn-group" role="group">
+      <!-- Map / List View Switcher -->
+      <div class="mt-2 mt-md-0 btn-group" role="group" aria-label="View mode toggle">
         <button type="button" class="btn btn-outline-primary btn-sm active" id="btnListView" onclick="toggleView('list')">
-          <i class="bi bi-grid me-1"></i> Card View
+          <i class="bi bi-grid me-1"></i> List View
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm" id="btnMapView" onclick="toggleView('map')">
           <i class="bi bi-map me-1"></i> Interactive Map
@@ -121,144 +300,190 @@
       </div>
     </div>
 
-    <!-- Map Container -->
-    <div id="mapContainer" class="mb-4" style="display: none;">
-      <div class="med-card p-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="small fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i> OpenStreetMap Pharmacy Geographic Directory</span>
-          <span class="badge bg-light text-dark">Click pin for details &amp; contact</span>
+    <!-- Interactive Leaflet Map Container -->
+    <div id="mapContainer" class="map-container-wrapper mb-4" style="display: none;">
+      <!-- Leaflet Map Div -->
+      <div id="facilityMap" style="height: 100%; width: 100%;"></div>
+
+      <!-- Floating Map Legend -->
+      <div class="map-floating-legend shadow-sm">
+        <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-layers-fill text-primary me-1"></i>Map Legend</span>
+          <span class="text-muted" style="font-size: 0.68rem;">Haversine Straight-Line</span>
         </div>
-        <div id="map" style="height: 440px; border-radius: 8px;"></div>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+          <span class="d-flex align-items-center"><span class="badge bg-danger rounded-circle p-1 me-1">&nbsp;</span> <strong>Hospital</strong></span>
+          <span class="d-flex align-items-center"><span class="badge bg-success rounded-circle p-1 me-1">&nbsp;</span> <strong>Pharmacy</strong></span>
+          {% if has_user_coords %}
+            <span class="d-flex align-items-center"><span class="badge bg-info rounded-circle p-1 me-1">&nbsp;</span> <strong>You</strong></span>
+          {% endif %}
+        </div>
+        <div class="text-muted border-top pt-1 mt-1" style="font-size: 0.68rem; line-height: 1.25;">
+          * Distances are straight-line calculations. For road navigation, use the "Directions" link in each popup.
+        </div>
+      </div>
+
+      <!-- Map Reset / Fit Pins Control -->
+      <div class="position-absolute top-0 end-0 m-3" style="z-index: 1000;">
+        <button type="button" class="btn btn-sm btn-light border shadow-sm fw-semibold" onclick="resetMapView()">
+          <i class="bi bi-arrows-fullscreen me-1"></i> Fit All Pins
+        </button>
       </div>
     </div>
 
-    <!-- Pharmacy Grid / List -->
-    <div id="resultsList">
-      {% if pharmacies %}
+    <!-- Provider Cards Grid View -->
+    <div id="listViewContainer">
+      {% if page_obj %}
         <div class="row g-3">
-          {% for p in pharmacies %}
+          {% for provider in page_obj %}
             <div class="col-md-6 col-xl-4">
-              <div class="med-card p-4 h-100 d-flex flex-column justify-content-between">
+              <div class="med-card h-100 p-3 d-flex flex-column justify-content-between provider-card {% if provider.provider_type == 'HOSPITAL' %}card-hospital{% else %}card-pharmacy{% endif %}">
                 <div>
+                  <!-- Header: Provider Type & Verification Badge -->
                   <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
-                      <i class="bi bi-patch-check-fill me-1"></i> Verified
-                    </span>
-                    {% if p.distance_km is not None %}
-                      <span class="badge bg-info-subtle text-info-emphasis border rounded-pill small">
-                        <i class="bi bi-signpost-2 me-1"></i>{{ p.distance_km }} km
+                    {% if provider.provider_type == 'HOSPITAL' %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                        <i class="bi bi-hospital me-1"></i> Hospital
+                      </span>
+                    {% else %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle">
+                        <i class="bi bi-shop me-1"></i> Pharmacy
+                      </span>
+                    {% endif %}
+
+                    {% if provider.is_approved %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle" title="Physically or administratively verified partner">
+                        <i class="bi bi-patch-check-fill me-1"></i> Verified
+                      </span>
+                    {% else %}
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" title="Unverified directory listing">
+                        <i class="bi bi-clock-history me-1"></i> Directory Listing
                       </span>
                     {% endif %}
                   </div>
 
-                  <h5 class="fw-bold mb-1">
-                    <a href="{% url 'pharmacy_detail' p.id %}" class="text-decoration-none text-dark">
-                      {{ p.pharmacy_name }}
+                  <!-- Title -->
+                  <h6 class="fw-bold text-dark mb-1">
+                    <a href="{% url 'pharmacy_detail' provider.id %}" class="text-dark text-decoration-none">
+                      {{ provider.pharmacy_name }}
                     </a>
-                  </h5>
-                  <p class="small text-muted mb-2">
-                    <i class="bi bi-card-text me-1"></i> Reg: <code>{{ p.registration_number }}</code>
-                  </p>
+                  </h6>
 
-                  <p class="small text-muted mb-2">
+                  <!-- Address & Administrative Hierarchy -->
+                  <p class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.35;">
                     <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                    {{ p.address }}<br>
-                    <strong>{{ p.city }}</strong>, {{ p.state }} - {{ p.pincode }}
+                    {{ provider.address }}<br>
+                    <strong>{{ provider.city }}</strong>{% if provider.district and provider.district != provider.city %}, {{ provider.district }}{% endif %}, {{ provider.state }} - {{ provider.pincode }}
                   </p>
 
-                  <p class="small text-success mb-3 fw-semibold">
-                    <i class="bi bi-telephone me-1"></i> {{ p.phone_number }}
-                  </p>
-                </div>
+                  <!-- Status Badges: Distance & Inventory Availability -->
+                  <div class="d-flex flex-wrap gap-1 mb-2">
+                    {% if provider.distance_km is not None %}
+                      <span class="badge bg-info-subtle text-info border border-info-subtle fw-semibold" style="font-size: 0.74rem;" title="Approximate straight-line (Haversine) distance">
+                        <i class="bi bi-cursor-fill me-1"></i> {{ provider.distance_km }} km away (straight-line)
+                      </span>
+                    {% endif %}
 
-                <div class="border-top pt-3 mt-2">
-                  <div class="d-grid gap-2">
-                    <a href="{% url 'pharmacy_detail' p.id %}" class="btn btn-med-primary btn-sm">
-                      <i class="bi bi-boxes me-1"></i> View Store &amp; Live Stock
-                    </a>
-                    <div class="d-flex gap-2">
-                      <a href="tel:{{ p.phone_number }}" class="btn btn-outline-success btn-sm flex-grow-1">
-                        <i class="bi bi-telephone"></i> Call
-                      </a>
-                      {% if p.latitude and p.longitude %}
-                        <button type="button" class="btn btn-med-outline btn-sm flex-grow-1" onclick="showOnMap({{ p.latitude }}, {{ p.longitude }}, '{{ p.pharmacy_name|escapejs }}', '{{ p.address|escapejs }}, {{ p.city|escapejs }}', '{{ p.phone_number|escapejs }}', '{% if p.distance_km %}{{ p.distance_km }} km{% endif %}')">
-                          <i class="bi bi-pin-map"></i> Pin
-                        </button>
+                    {% if provider.provider_type == 'PHARMACY' %}
+                      {% if provider.has_active_inventory %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.74rem;">
+                          <i class="bi bi-boxes me-1"></i> Stock Available
+                        </span>
+                      {% else %}
+                        <span class="badge bg-light text-muted border" style="font-size: 0.74rem;" title="No inventory items published on MediFind">
+                          <i class="bi bi-slash-circle me-1"></i> No Stock Published
+                        </span>
                       {% endif %}
-                    </div>
+                    {% endif %}
                   </div>
+
+                  <!-- Contact Phone -->
+                  {% if provider.phone_number %}
+                    <div class="small mb-2" style="font-size: 0.78rem;">
+                      <a href="tel:{{ provider.phone_number }}" class="text-decoration-none text-success fw-semibold">
+                        <i class="bi bi-telephone me-1"></i> {{ provider.phone_number }}
+                      </a>
+                    </div>
+                  {% endif %}
                 </div>
 
+                <!-- Footer Actions: Profile, Directions, Pin on Map -->
+                <div class="border-top pt-2 mt-2">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <a href="{% url 'pharmacy_detail' provider.id %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.78rem;">
+                      {% if provider.provider_type == 'HOSPITAL' %}
+                        Hospital Details &rarr;
+                      {% else %}
+                        Store &amp; Inventory &rarr;
+                      {% endif %}
+                    </a>
+
+                    {% if provider.latitude and provider.longitude %}
+                      <button type="button" class="btn btn-sm btn-light border text-muted" style="font-size: 0.75rem;"
+                        onclick="showOnMap({{ provider.latitude }}, {{ provider.longitude }}, '{{ provider.pharmacy_name|escapejs }}', '{{ provider.address|escapejs }}, {{ provider.city|escapejs }}', '{{ provider.phone_number|escapejs }}', '{{ provider.distance_km|default:'' }}', '{{ provider.provider_type }}', '{{ provider.is_approved|yesno:'true,false' }}', '{{ provider.has_active_inventory|yesno:'true,false' }}', '{{ provider.directions_url_google|escapejs }}', '{{ provider.directions_url_osm|escapejs }}')">
+                        <i class="bi bi-geo me-1"></i> Pin on Map
+                      </button>
+                    {% endif %}
+                  </div>
+
+                  <!-- External Directions Shortcut -->
+                  {% if provider.latitude and provider.longitude %}
+                    <div class="d-flex align-items-center gap-1">
+                      <a href="{{ provider.directions_url_google }}" target="_blank" rel="noopener noreferrer" 
+                         class="btn btn-sm btn-outline-secondary w-50 py-0" style="font-size: 0.72rem; line-height: 1.8;"
+                         title="Open driving navigation in Google Maps">
+                        <i class="bi bi-google me-1"></i> Directions
+                      </a>
+                      <a href="{{ provider.directions_url_osm }}" target="_blank" rel="noopener noreferrer" 
+                         class="btn btn-sm btn-outline-secondary w-50 py-0" style="font-size: 0.72rem; line-height: 1.8;"
+                         title="Open routing in OpenStreetMap">
+                        <i class="bi bi-compass me-1"></i> OSM Route
+                      </a>
+                    </div>
+                  {% endif %}
+                </div>
               </div>
             </div>
           {% endfor %}
         </div>
 
-        <!-- Pagination Controls -->
+        <!-- Pagination -->
         {% if page_obj.has_other_pages %}
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
-            <div class="small text-muted">
-              Showing page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong> (Total: {{ total_results }} pharmacies)
-            </div>
-            <nav aria-label="Pharmacy discovery pagination">
-              <ul class="pagination pagination-sm mb-0">
-                {% if page_obj.has_previous %}
-                  <li class="page-item">
-                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">&laquo; First</a>
-                  </li>
-                  <li class="page-item">
-                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-                  </li>
-                {% else %}
-                  <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
-                  <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                {% endif %}
+          <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?{{ query_string }}&page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+                </li>
+              {% endif %}
 
-                {% for pnum in page_obj.paginator.page_range %}
-                  {% if pnum == page_obj.number %}
-                    <li class="page-item active" aria-current="page"><span class="page-link">{{ pnum }}</span></li>
-                  {% elif pnum > page_obj.number|add:"-3" and pnum < page_obj.number|add:"3" %}
-                    <li class="page-item">
-                      <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pnum }}">{{ pnum }}</a>
-                    </li>
-                  {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                  <li class="page-item">
-                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-                  </li>
-                  <li class="page-item">
-                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
-                  </li>
-                {% else %}
-                  <li class="page-item disabled"><span class="page-link">Next</span></li>
-                  <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+              {% for p in page_obj.paginator.page_range %}
+                {% if page_obj.number == p %}
+                  <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                {% elif p > page_obj.number|add:'-3' and p < page_obj.number|add:'3' %}
+                  <li class="page-item"><a class="page-link" href="?{{ query_string }}&page={{ p }}">{{ p }}</a></li>
                 {% endif %}
-              </ul>
-            </nav>
-          </div>
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?{{ query_string }}&page={{ page_obj.next_page_number }}">Next &raquo;</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
         {% endif %}
 
       {% else %}
-        <div class="empty-state">
-          <div class="empty-state-icon">
-            <i class="bi bi-hospital"></i>
-          </div>
-          <h5 class="fw-bold text-dark">No Matching Pharmacies Found</h5>
-          <p class="text-muted small mx-auto mb-3" style="max-width: 520px;">
-            No verified partner pharmacies currently match your location or search filters.
+        <!-- Empty State -->
+        <div class="med-card text-center py-5 px-4">
+          <div class="text-muted fs-1 mb-3"><i class="bi bi-hospital"></i></div>
+          <h5 class="fw-bold text-dark">No Healthcare Facilities Found</h5>
+          <p class="text-muted small mx-auto" style="max-width: 480px;">
+            We couldn't find any healthcare providers matching your search criteria. Try widening your proximity radius, switching Verification to "All Facilities", or clearing specific filters.
           </p>
-          <div class="alert alert-light border small text-start mx-auto mb-3" style="max-width: 520px;">
-            <strong class="d-block mb-1 text-dark"><i class="bi bi-lightbulb text-warning me-1"></i>Search Suggestions:</strong>
-            <ul class="mb-0 ps-3 text-secondary">
-              <li>Widen or remove your proximity radius filter (e.g. choose "Any Distance").</li>
-              <li>Clear city or pincode restrictions to search across neighboring regions.</li>
-              <li>Check your search spelling for pharmacy or street names.</li>
-            </ul>
-          </div>
-          <a href="{% url 'pharmacy_discovery' %}" class="btn btn-med-primary btn-sm rounded-pill px-4">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset All Filters
+          <a href="{% url 'pharmacy_discovery' %}?verification=all" class="btn btn-med-primary btn-sm mt-2">
+            <i class="bi bi-globe me-1"></i> View All National Providers
           </a>
         </div>
       {% endif %}
@@ -266,93 +491,239 @@
 
   </div>
 </div>
+
+<!-- Embedded JSON Data for Leaflet.js -->
+{{ map_pins|json_script:"provider-pins-data" }}
+{% if user_coords %}
+  {{ user_coords|json_script:"user-coords-data" }}
+{% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
-{{ map_pins|json_script:"pharmacy-pins-data" }}
-{{ user_coords|json_script:"user-coords-data" }}
+<!-- Leaflet MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<!-- Leaflet.js Interactive Geospatial & Directions Script -->
 <script>
   let mapInstance = null;
   let markersLayer = null;
+  let mapBounds = [];
+
+  // Helper to construct custom HTML marker pins
+  function createCustomMarkerIcon(providerType) {
+    const isHospital = providerType === 'HOSPITAL';
+    const pinClass = isHospital ? 'pin-hospital' : 'pin-pharmacy';
+    const iconClass = isHospital ? 'bi-hospital-fill' : 'bi-capsule';
+
+    return L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div class="medifind-map-pin ${pinClass}"><i class="bi ${iconClass}"></i></div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 34],
+      popupAnchor: [0, -32]
+    });
+  }
+
+  function createUserLocationIcon() {
+    return L.divIcon({
+      className: 'custom-user-icon',
+      html: `<div class="user-location-pulse" title="Your Detected Location"></div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+      popupAnchor: [0, -12]
+    });
+  }
 
   function initLeafletMap() {
     if (mapInstance !== null) return;
 
-    // Default center on Hyderabad region or user coordinates
-    const userCoords = JSON.parse(document.getElementById('user-coords-data').textContent || 'null');
-    const defaultCenter = userCoords ? [userCoords.lat, userCoords.lng] : [17.415582, 78.435783];
-    const defaultZoom = userCoords ? 12 : 11;
+    // Default center on India geographic center [20.5937, 78.9629]
+    let initialCenter = [20.5937, 78.9629];
+    let initialZoom = 5;
 
-    mapInstance = L.map('map').setView(defaultCenter, defaultZoom);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapInstance);
-
-    markersLayer = L.layerGroup().addTo(mapInstance);
-
-    const bounds = [];
-
-    // Add user marker if available
-    if (userCoords && userCoords.lat && userCoords.lng) {
-      const userMarker = L.circleMarker([userCoords.lat, userCoords.lng], {
-        radius: 9,
-        fillColor: '#0EA5A4',
-        color: '#FFFFFF',
-        weight: 3,
-        opacity: 1,
-        fillOpacity: 0.9
-      }).addTo(markersLayer);
-      userMarker.bindPopup('<strong style="color: #0EA5A4;"><i class="bi bi-person-fill"></i> Your Detected Location</strong>');
-      bounds.push([userCoords.lat, userCoords.lng]);
+    const userCoordsEl = document.getElementById('user-coords-data');
+    let userCoords = null;
+    if (userCoordsEl) {
+      try { userCoords = JSON.parse(userCoordsEl.textContent); } catch (e) {}
     }
 
-    // Add pharmacy markers
-    const pinsData = JSON.parse(document.getElementById('pharmacy-pins-data').textContent || '[]');
+    if (userCoords && userCoords.lat && userCoords.lng) {
+      initialCenter = [userCoords.lat, userCoords.lng];
+      initialZoom = 12;
+    }
+
+    mapInstance = L.map('facilityMap', {
+      center: initialCenter,
+      zoom: initialZoom,
+      zoomControl: true,
+      scrollWheelZoom: true
+    });
+
+    // OpenStreetMap Tile Layer with mandatory attribution
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors | MediFind Healthcare Discovery'
+    }).addTo(mapInstance);
+
+    // Initialize Marker Cluster Group if available, else standard LayerGroup
+    if (typeof L.markerClusterGroup === 'function') {
+      markersLayer = L.markerClusterGroup({
+        maxClusterRadius: 42,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        disableClusteringAtZoom: 16
+      });
+      mapInstance.addLayer(markersLayer);
+    } else {
+      markersLayer = L.layerGroup().addTo(mapInstance);
+    }
+
+    mapBounds = [];
+
+    // Plot User Location Marker
+    if (userCoords && userCoords.lat && userCoords.lng) {
+      const userMarker = L.marker([userCoords.lat, userCoords.lng], {
+        icon: createUserLocationIcon(),
+        title: 'Your Detected Location'
+      }).addTo(markersLayer);
+
+      userMarker.bindPopup(`
+        <div style="font-family: 'Plus Jakarta Sans', sans-serif; min-width: 160px;">
+          <strong style="color: #0EA5A4;"><i class="bi bi-person-circle me-1"></i>Your Location</strong>
+          <p class="text-muted small mb-0" style="font-size: 0.75rem;">GPS Coordinates: ${userCoords.lat.toFixed(4)}, ${userCoords.lng.toFixed(4)}</p>
+        </div>
+      `);
+      mapBounds.push([userCoords.lat, userCoords.lng]);
+    }
+
+    // Plot Facility Markers (Hospitals & Pharmacies)
+    const pinsData = JSON.parse(document.getElementById('provider-pins-data').textContent || '[]');
     if (pinsData.length > 0) {
       pinsData.forEach(p => {
-        const marker = L.marker([p.lat, p.lng]).addTo(markersLayer);
-        const distBadge = p.distance_km !== null ? `<span style="font-size: 0.75rem; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 10px; font-weight: 600;">${p.distance_km} km away</span>` : '';
+        const isHospital = p.provider_type === 'HOSPITAL';
+        
+        // Distinct marker icon
+        const marker = L.marker([p.lat, p.lng], {
+          icon: createCustomMarkerIcon(p.provider_type),
+          title: p.name
+        }).addTo(markersLayer);
+
+        const typeBadge = isHospital 
+          ? '<span style="font-size: 0.7rem; background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 6px; font-weight: 700;">HOSPITAL</span>'
+          : '<span style="font-size: 0.7rem; background: #DCFCE7; color: #16A34A; padding: 2px 6px; border-radius: 6px; font-weight: 700;">PHARMACY</span>';
+
+        const approvalBadge = p.is_approved
+          ? '<span style="font-size: 0.68rem; background: #DCFCE7; color: #15803D; padding: 2px 5px; border-radius: 4px; font-weight: 600;">Verified Partner</span>'
+          : '<span style="font-size: 0.68rem; background: #FEF3C7; color: #92400E; padding: 2px 5px; border-radius: 4px; font-weight: 600;">Directory Listing</span>';
+
+        const stockBadge = !isHospital
+          ? (p.has_active_inventory 
+              ? '<span style="font-size: 0.68rem; background: #E0F2FE; color: #0369A1; padding: 2px 5px; border-radius: 4px; font-weight: 600;">Stock Available</span>'
+              : '<span style="font-size: 0.68rem; background: #F1F5F9; color: #64748B; padding: 2px 5px; border-radius: 4px;">No Stock Published</span>')
+          : '';
+
+        const distBadge = p.distance_km !== null 
+          ? `<div style="font-size: 0.74rem; background: #E0F2FE; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-weight: 600; display: inline-block; margin-top: 3px;">
+              <i class="bi bi-cursor-fill me-1"></i>~${p.distance_km} km (straight-line)
+             </div>` 
+          : '';
+
         const popupContent = `
-          <div style="min-width: 190px; font-family: 'Plus Jakarta Sans', sans-serif;">
+          <div style="min-width: 220px; font-family: 'Plus Jakarta Sans', sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <strong style="color: #102A43; font-size: 0.95rem;">${p.name}</strong>
+              ${typeBadge}
+              ${approvalBadge}
             </div>
-            ${distBadge}
-            <div style="font-size: 0.82rem; color: #64748B; margin-top: 4px; line-height: 1.3;">${p.address}</div>
-            <div style="margin-top: 6px;">
-              <a href="tel:${p.phone}" style="font-size: 0.82rem; color: #16A34A; text-decoration: none; font-weight: 600;">📞 ${p.phone}</a>
-            </div>
+            <strong style="color: #102A43; font-size: 0.92rem; display: block; margin-top: 3px; line-height: 1.3;">${p.name}</strong>
+            <div style="margin: 3px 0;">${distBadge} ${stockBadge}</div>
+            <div style="font-size: 0.78rem; color: #64748B; margin-top: 3px; line-height: 1.3;">${p.address}</div>
+            ${p.phone ? `<div style="margin-top: 4px;"><a href="tel:${p.phone}" style="font-size: 0.78rem; color: #16A34A; text-decoration: none; font-weight: 600;">📞 ${p.phone}</a></div>` : ''}
+            
             <div style="margin-top: 8px; border-top: 1px solid #E2E8F0; padding-top: 6px;">
-              <a href="/pharmacies/${p.id}/" style="font-size: 0.8rem; color: #0EA5A4; font-weight: 600; text-decoration: none;">View Store &amp; Stock &rarr;</a>
+              <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                <a href="${p.directions_url_google}" target="_blank" rel="noopener noreferrer" 
+                   style="font-size: 0.72rem; padding: 3px 6px; background: #1E293B; color: #FFFFFF; text-decoration: none; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">
+                  <i class="bi bi-google"></i> Directions
+                </a>
+                <a href="${p.directions_url_osm}" target="_blank" rel="noopener noreferrer" 
+                   style="font-size: 0.72rem; padding: 3px 6px; background: #F1F5F9; color: #334155; text-decoration: none; border: 1px solid #CBD5E1; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;">
+                  <i class="bi bi-compass"></i> OSM
+                </a>
+              </div>
+              <a href="/pharmacies/${p.id}/" style="font-size: 0.76rem; color: #0EA5A4; font-weight: 600; text-decoration: none;">
+                ${isHospital ? 'View Hospital Overview &rarr;' : 'View Store & Inventory &rarr;'}
+              </a>
             </div>
           </div>
         `;
         marker.bindPopup(popupContent);
-        bounds.push([p.lat, p.lng]);
+        mapBounds.push([p.lat, p.lng]);
       });
-      if (bounds.length > 0) {
-        mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+
+      if (mapBounds.length > 0) {
+        mapInstance.fitBounds(mapBounds, { padding: [40, 40], maxZoom: 14 });
       }
+    }
+  }
+
+  function resetMapView() {
+    if (mapInstance && mapBounds.length > 0) {
+      mapInstance.fitBounds(mapBounds, { padding: [40, 40], maxZoom: 14 });
     }
   }
 
   function toggleView(viewType) {
     const mapDiv = document.getElementById('mapContainer');
+    const listDiv = document.getElementById('listViewContainer');
     const btnList = document.getElementById('btnListView');
     const btnMap = document.getElementById('btnMapView');
 
     if (viewType === 'map') {
       mapDiv.style.display = 'block';
+      listDiv.style.display = 'none';
       btnMap.classList.add('active');
       btnList.classList.remove('active');
       initLeafletMap();
-      setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 200);
+      setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 150);
     } else {
       mapDiv.style.display = 'none';
+      listDiv.style.display = 'block';
       btnList.classList.add('active');
       btnMap.classList.remove('active');
+    }
+  }
+
+  function showOnMap(lat, lng, name, address, phone, distStr, providerType, isApproved, hasStock, googleUrl, osmUrl) {
+    toggleView('map');
+    if (mapInstance) {
+      mapInstance.setView([lat, lng], 15);
+      const isHospital = providerType === 'HOSPITAL';
+      const typeBadge = isHospital 
+        ? '<span style="font-size: 0.7rem; background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 6px; font-weight: 700;">HOSPITAL</span>'
+        : '<span style="font-size: 0.7rem; background: #DCFCE7; color: #16A34A; padding: 2px 6px; border-radius: 6px; font-weight: 700;">PHARMACY</span>';
+
+      const approvalBadge = isApproved
+        ? '<span style="font-size: 0.68rem; background: #DCFCE7; color: #15803D; padding: 2px 5px; border-radius: 4px; font-weight: 600;">Verified Partner</span>'
+        : '<span style="font-size: 0.68rem; background: #FEF3C7; color: #92400E; padding: 2px 5px; border-radius: 4px; font-weight: 600;">Directory Listing</span>';
+
+      const popupHtml = `
+        <div style="min-width: 210px; font-family: 'Plus Jakarta Sans', sans-serif;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            ${typeBadge}
+            ${approvalBadge}
+          </div>
+          <strong style="color: #102A43; font-size: 0.92rem;">${name}</strong><br>
+          ${distStr ? '<span style="font-size: 0.74rem; color: #0284C7; font-weight: 600;">~' + distStr + ' km (straight-line)</span><br>' : ''}
+          <span style="font-size: 0.78rem; color: #64748B;">${address}</span><br>
+          ${phone ? '<a href="tel:' + phone + '" style="font-size: 0.78rem; color: #16A34A; text-decoration: none; font-weight: 600;">📞 ' + phone + '</a>' : ''}
+          <div style="margin-top: 6px; border-top: 1px solid #E2E8F0; padding-top: 6px; display: flex; gap: 4px;">
+            <a href="${googleUrl}" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; padding: 3px 6px; background: #1E293B; color: #FFFFFF; text-decoration: none; border-radius: 4px; font-weight: 600;">Directions</a>
+            <a href="${osmUrl}" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; padding: 3px 6px; background: #F1F5F9; color: #334155; text-decoration: none; border: 1px solid #CBD5E1; border-radius: 4px;">OSM</a>
+          </div>
+        </div>
+      `;
+      L.popup().setLatLng([lat, lng]).setContent(popupHtml).openOn(mapInstance);
     }
   }
 
@@ -360,10 +731,10 @@
     const feedback = document.getElementById('geoFeedback');
     const latInput = document.getElementById('userLatInput');
     const lngInput = document.getElementById('userLngInput');
-    const form = document.getElementById('pharmacySearchForm');
+    const form = document.getElementById('providerSearchForm');
 
     if (!navigator.geolocation) {
-      if (feedback) feedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Geolocation is not supported by your browser. Please search by City or Pincode.</span>';
+      if (feedback) feedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Geolocation is not supported by your browser. Please search manually by City or Pincode.</span>';
       return;
     }
 
@@ -381,7 +752,7 @@
       (error) => {
         let msg = "Unable to retrieve location.";
         if (error.code === 1) { // PERMISSION_DENIED
-          msg = "Location permission was denied. You can search manually using City or Pincode below.";
+          msg = "Location access was denied. You can search manually using City, State, or Pincode below.";
         } else if (error.code === 2) { // POSITION_UNAVAILABLE
           msg = "Location is currently unavailable. Please enter your City or Pincode.";
         } else if (error.code === 3) { // TIMEOUT
@@ -396,26 +767,10 @@
   function clearUserLocation() {
     const latInput = document.getElementById('userLatInput');
     const lngInput = document.getElementById('userLngInput');
-    const form = document.getElementById('pharmacySearchForm');
+    const form = document.getElementById('providerSearchForm');
     if (latInput) latInput.value = '';
     if (lngInput) lngInput.value = '';
     form.submit();
-  }
-
-  function showOnMap(lat, lng, name, address, phone, distStr) {
-    toggleView('map');
-    if (mapInstance) {
-      mapInstance.setView([lat, lng], 15);
-      const popupHtml = `
-        <div style="min-width: 180px; font-family: 'Plus Jakarta Sans', sans-serif;">
-          <strong style="color: #102A43;">${name}</strong><br>
-          ${distStr ? '<span style="font-size: 0.75rem; color: #0284C7; font-weight: 600;">' + distStr + ' away</span><br>' : ''}
-          <span style="font-size: 0.82rem; color: #64748B;">${address}</span><br>
-          <a href="tel:${phone}" style="font-size: 0.82rem; color: #16A34A; text-decoration: none; font-weight: 600;">📞 ${phone}</a>
-        </div>
-      `;
-      L.popup().setLatLng([lat, lng]).setContent(popupHtml).openOn(mapInstance);
-    }
   }
 </script>
 {% endblock %}

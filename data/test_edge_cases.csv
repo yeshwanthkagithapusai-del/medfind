@@ -1,0 +1,6 @@
+Hospital_Name,State_Name,District_Name,City,Address,Pincode,Latitude,Longitude,NIN_Code,Contact_Number
+Invalid Foreign Facility (Paris France),International,Non-India,Paris,"Rue de Rivoli",75001,48.856600,2.352200,ERR-TEST-001,01-44556677
+Missing Coordinates Hospital,Delhi,New Delhi,New Delhi,"Ansari Nagar Road",110029,,,ERR-TEST-002,011-26588888
+Null Island Facility (Zero Coords),Maharashtra,Mumbai,Mumbai,"Marine Drive",400020,0.000000,0.000000,ERR-TEST-003,022-22000000
+Invalid Postal Code Facility (5 Digits),Telangana,Hyderabad,Hyderabad,"Banjara Hills Road 1",50001,17.415600,78.435600,ERR-TEST-004,040-23351111
+Transposed Coordinates Hospital,Karnataka,Bengaluru Urban,Bengaluru,"Bannerghatta Road",560076,77.596300,12.891200,ERR-TEST-005,080-26300000

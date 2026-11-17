@@ -1,0 +1,67 @@
+{
+  "results": {
+    "1_hospital_search": {
+      "status": "PASS",
+      "details": "Verified 15 total hospitals with 9 cards on page 1, red card-hospital indicators, and pagination controls."
+    },
+    "2_pharmacy_search": {
+      "status": "PASS",
+      "details": "Verified 18 total pharmacies (12 genuine OSM + 6 pilot demo) with 9 cards per page and green Pharmacy category badges."
+    },
+    "3_state_dropdown": {
+      "status": "PASS",
+      "details": "State dropdown selection for 'Telangana' correctly narrowed results to 8 facilities in Telangana."
+    },
+    "4_district_dropdown": {
+      "status": "PASS",
+      "details": "District filter for 'New Delhi' successfully returned 4 providers in New Delhi district."
+    },
+    "5_city_and_pincode_search": {
+      "status": "PASS",
+      "details": "City filter (Mumbai: 4) and Pincode filter (500082: 1) verified working."
+    },
+    "6_hospital_map_markers": {
+      "status": "PASS",
+      "details": "Interactive Leaflet map successfully initialized with 15 red hospital markers across India."
+    },
+    "7_pharmacy_map_markers": {
+      "status": "PASS",
+      "details": "Interactive Leaflet map successfully initialized with 18 green pharmacy markers."
+    },
+    "8_marker_popup_details": {
+      "status": "PASS",
+      "details": "Leaflet popup correctly displays category badge, verification status, facility name, address, phone, and detail link."
+    },
+    "9_distance_calculations": {
+      "status": "PASS",
+      "details": "Haversine distance calculation verified. Nearest facility is 1.58 km away, strictly sorted in ascending proximity order."
+    },
+    "10_browser_geolocation": {
+      "status": "PASS",
+      "details": "HTML5 Geolocation API successfully granted, coordinates populated, form submitted, and 'GPS Linked' feedback active."
+    },
+    "11_manual_location_search": {
+      "status": "PASS",
+      "details": "Manual keyword search for 'AIIMS' successfully matched 5 healthcare facilities."
+    },
+    "12_view_switching": {
+      "status": "PASS",
+      "details": "Interactive view switcher flawlessly alternates between Card List View and Leaflet Interactive Map."
+    },
+    "13_empty_search_results": {
+      "status": "PASS",
+      "details": "Clean empty-state UI rendered with clear recovery guidance and 'View All National Providers' call to action."
+    },
+    "14_mobile_responsiveness": {
+      "status": "PASS",
+      "details": "Mobile layout verified at 375x667 with zero horizontal overflow (clientWidth: 375px, scrollWidth: 375px)."
+    },
+    "15_existing_workflows": {
+      "status": "PASS",
+      "details": "Medicine search, pharmacy store inventory view, and institutional hospital view verified with 100% regression fidelity."
+    }
+  },
+  "console_errors": [],
+  "console_warnings": [],
+  "network_errors": []
+}
